@@ -133,8 +133,13 @@ test('creates, edits, runs and previews a Phaser project', async () => {
     await page.getByRole('tabpanel', { name: 'Project' }).getByTitle('Refresh Project').click()
     const projectPanel = page.getByRole('tabpanel', { name: 'Project' })
     await expect(projectPanel.locator('.project-folder-pane [data-kind="file"]')).toHaveCount(0)
-    await expect(projectPanel.locator('.project-file-pane [data-kind="directory"]')).toHaveCount(0)
+    const assetFolder = projectPanel.getByTestId('project-file-pane').getByRole('option', { name: 'assets', exact: true })
+    await expect(assetFolder).toHaveAttribute('data-kind', 'directory')
     await expect(projectPanel.getByRole('option', { name: 'package.json', exact: true })).toBeVisible()
+
+    await assetFolder.dblclick()
+    await expect(projectPanel.getByRole('option', { name: 'scene-map.json', exact: true })).toBeVisible()
+    await expect(projectPanel.getByRole('navigation', { name: 'Current project folder' })).toContainText('assets')
 
     await expandAssetDirectory(page, 'assets')
     await expect(projectPanel.getByRole('option', { name: 'scene-map.json', exact: true })).toBeVisible()

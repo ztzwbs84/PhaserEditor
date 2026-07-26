@@ -35,13 +35,13 @@ export function ProjectCenter(): React.JSX.Element {
         </div>
         <div className="project-table" role="table" aria-label="Recent Phaser projects">
           <div className="project-row project-table-header" role="row">
-            <span>Name</span><span>Phaser</span><span>Last opened</span><span />
+            <span>Name</span><span>Modified</span><span>Editor version</span><span />
           </div>
           {filtered.map((project) => (
             <button key={project.path} className={`project-row${selectedPath === project.path ? ' selected' : ''}`} role="row" aria-selected={selectedPath === project.path} onDoubleClick={() => void openProject(project.path)} onClick={() => setSelectedPath(project.path)}>
               <span className="project-name"><span className="project-icon"><Gamepad2 size={18} /></span><span><strong>{project.name}</strong><small>{project.path}</small></span></span>
-              <span>{project.phaserVersion ?? 'Unknown'}</span>
               <span className="muted"><Clock3 size={14} />{formatRelative(project.lastOpenedAt)}</span>
+              <span>{project.phaserVersion ?? 'Unknown'}</span>
               <span><MoreHorizontal size={17} /></span>
             </button>
           ))}

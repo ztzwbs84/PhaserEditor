@@ -201,8 +201,8 @@ export function Explorer(): React.JSX.Element {
     window.addEventListener('pointerup', stop)
   }
 
-  const directFiles = useMemo(() => (children[currentDirectory] ?? []).filter((entry) => entry.kind === 'file'), [children, currentDirectory])
-  const visibleFiles = searchResults ?? directFiles
+  const directEntries = useMemo(() => children[currentDirectory] ?? [], [children, currentDirectory])
+  const visibleEntries = searchResults ?? directEntries
 
   return <div className="panel project-browser" onPointerDown={() => setMenu(null)}>
     <div className="project-browser-toolbar">
@@ -229,16 +229,25 @@ export function Explorer(): React.JSX.Element {
       <div className="project-file-pane" data-testid="project-file-pane" onContextMenu={(event) => { event.preventDefault(); setMenu({ x: event.clientX, y: event.clientY, entry: null }) }}>
         <Breadcrumb root={project.path} rootName={project.name} directory={currentDirectory} onSelect={(path) => void selectDirectory(path)} />
         <div className="project-file-list" role="listbox" aria-label={searchResults ? 'Project search results' : 'Files in selected folder'}>
-          {visibleFiles.map((entry) => <FileRow
-            key={entry.path}
-            entry={entry}
-            selected={selectedPath === entry.path}
-            showPath={Boolean(searchResults)}
-            onSelect={() => selectPath(entry.path)}
-            onOpen={() => void openDocument(entry.path)}
-            onContext={(event) => setMenu({ x: event.clientX, y: event.clientY, entry })}
-          />)}
-          {visibleFiles.length === 0 && <div className="project-empty">{searchResults ? 'No matching files' : 'This folder has no files'}</div>}
+          {visibleEntries.map((entry) => entry.kind === 'directory'
+            ? <DirectoryRow
+                key={entry.path}
+                entry={entry}
+                selected={selectedPath === entry.path}
+                onSelect={() => selectPath(entry.path)}
+                onOpen={() => void selectDirectory(entry.path)}
+                onContext={(event) => setMenu({ x: event.clientX, y: event.clientY, entry })}
+              />
+            : <FileRow
+                key={entry.path}
+                entry={entry}
+                selected={selectedPath === entry.path}
+                showPath={Boolean(searchResults)}
+                onSelect={() => selectPath(entry.path)}
+                onOpen={() => void openDocument(entry.path)}
+                onContext={(event) => setMenu({ x: event.clientX, y: event.clientY, entry })}
+              />)}
+          {visibleEntries.length === 0 && <div className="project-empty">{searchResults ? 'No matching files' : 'This folder is empty'}</div>}
         </div>
       </div>
     </div>
@@ -316,6 +325,32 @@ function FileRow({ entry, selected, showPath, onSelect, onOpen, onContext }: {
     <FileIcon entry={entry} />
     <span>{entry.name}</span>
     {showPath && <small>{parentPath(entry.relativePath)}</small>}
+  </div>
+}
+
+function DirectoryRow({ entry, selected, onSelect, onOpen, onContext }: {
+  entry: FileEntry
+  selected: boolean
+  onSelect(): void
+  onOpen(): void
+  onContext(event: React.MouseEvent): void
+}): React.JSX.Element {
+  return <div
+    className={`project-file-row project-directory-row${selected ? ' selected' : ''}`}
+    role="option"
+    aria-selected={selected}
+    data-kind="directory"
+    draggable
+    onDragStart={(event) => {
+      event.dataTransfer.setData('text/phaser-editor-path', entry.path)
+      event.dataTransfer.effectAllowed = 'copyMove'
+    }}
+    onClick={onSelect}
+    onDoubleClick={onOpen}
+    onContextMenu={(event) => { event.preventDefault(); onContext(event) }}
+  >
+    <Folder className="file-icon folder" size={14} />
+    <span>{entry.name}</span>
   </div>
 }
 

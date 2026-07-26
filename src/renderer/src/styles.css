@@ -3997,6 +3997,327 @@ button.project-row.selected {
   color: #c9dce8;
 }
 
+/* Unity 2022 visual refinement: dense, neutral work surfaces with restrained blue state. */
+:root {
+  --bg-app: #202020;
+  --bg-panel: #383838;
+  --bg-panel-alt: #2b2b2b;
+  --bg-elevated: #444444;
+  --bg-hover: #474747;
+  --bg-active: #315f7d;
+  --bg-input: #252525;
+  --border: #1d1d1d;
+  --border-strong: #5a5a5a;
+  --text: #e1e1e1;
+  --text-muted: #b3b3b3;
+  --text-faint: #858585;
+  --accent: #5b9fc8;
+  --accent-strong: #b9dcef;
+  --selection: #315f7d;
+  --menu-height: 22px;
+  --toolbar-height: 30px;
+  --status-height: 19px;
+  --radius: 2px;
+}
+
+.workspace-shell {
+  background: #202020;
+}
+
+.menu-bar {
+  min-height: 22px;
+  border-bottom-color: #b8b8b8;
+  background: #f2f2f2;
+  box-shadow: inset 0 -1px rgb(255 255 255 / 55%);
+}
+
+.menu-trigger {
+  padding: 0 7px;
+  color: #191919;
+  font-size: 11px;
+}
+
+.menu-trigger:hover,
+.menu-trigger.active {
+  background: #d7e8f5;
+}
+
+.toolbar {
+  min-height: 30px;
+  padding: 3px 5px;
+  border-bottom-color: #111;
+  background: #242424;
+  box-shadow: inset 0 1px #383838;
+}
+
+.toolbar-button {
+  width: 25px;
+  height: 23px;
+  color: #b8b8b8;
+}
+
+.toolbar-button:hover:not(:disabled) {
+  border-color: #656565;
+  background: #4a4a4a;
+  color: #f1f1f1;
+}
+
+.run-controls {
+  height: 24px;
+  border-color: #111;
+  border-radius: 2px;
+  box-shadow: inset 0 1px rgb(255 255 255 / 5%);
+}
+
+.flexlayout__tabset,
+.panel {
+  background: #383838;
+}
+
+.flexlayout__tabset_header,
+.flexlayout__tabset_tabbar_outer {
+  min-height: 25px;
+  border-bottom-color: #202020;
+  background: #2d2d2d;
+  box-shadow: inset 0 1px #414141;
+}
+
+.flexlayout__tab_button {
+  height: 25px;
+  padding: 0 9px;
+  border-right-color: #202020;
+  color: #b7b7b7;
+  font-size: 11px;
+}
+
+.flexlayout__tab_button--selected {
+  box-shadow: inset 0 2px #757575;
+  background: #3b3b3b;
+  color: #f0f0f0;
+}
+
+.flexlayout__splitter {
+  background: #1d1d1d;
+}
+
+.flexlayout__splitter:hover {
+  background: #4f8eb8;
+}
+
+.panel-toolbar,
+.editor-toolbar,
+.tilemap-toolbar {
+  min-height: 29px;
+  padding: 3px 5px;
+  border-bottom-color: #202020;
+  background: #323232;
+  box-shadow: inset 0 1px #444;
+}
+
+.scene-view {
+  grid-template-rows: 27px minmax(0, 1fr);
+  background: #464646;
+}
+
+.scene-toolbar {
+  padding: 2px 4px;
+  border-bottom-color: #242424;
+  background: #343434;
+  box-shadow: inset 0 1px #4a4a4a;
+}
+
+.scene-canvas {
+  background-color: #474747;
+  background-image: linear-gradient(rgb(88 88 88 / 52%) 1px, transparent 1px), linear-gradient(90deg, rgb(88 88 88 / 52%) 1px, transparent 1px);
+}
+
+.scene-camera-frame {
+  border-color: #858585;
+  background: rgb(66 66 66 / 18%);
+}
+
+.inspector-section h3 {
+  padding: 4px 7px;
+  border-top-color: #5a5a5a;
+  background: #454545;
+  color: #e5e5e5;
+}
+
+.status-bar {
+  min-height: 19px;
+  padding: 0 6px;
+  border-top-color: #1a1a1a;
+  background: #2a2a2a;
+  color: #a7a7a7;
+}
+
+.project-center {
+  grid-template-columns: 240px minmax(0, 1fr);
+  background: #161616;
+}
+
+.project-sidebar {
+  padding: 18px 16px 14px;
+  border-right-color: #353535;
+  background: #252525;
+}
+
+.project-brand {
+  min-height: 52px;
+  padding: 0 6px 22px;
+  color: #e9e9e9;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.project-sidebar nav {
+  gap: 5px;
+}
+
+.nav-item {
+  height: 40px;
+  gap: 10px;
+  padding: 0 12px;
+  border-radius: 7px;
+  color: #c7c7c7;
+}
+
+.nav-item.active {
+  box-shadow: none;
+  background: #454545;
+  color: #fff;
+}
+
+.project-content {
+  padding: 30px 32px;
+  background: #161616;
+}
+
+.project-header {
+  min-height: 92px;
+  align-items: flex-start;
+  padding-bottom: 18px;
+  border-bottom-color: #303030;
+}
+
+.project-header h1 {
+  color: #f3f3f3;
+  font-size: 28px;
+  font-weight: 500;
+}
+
+.project-header p {
+  display: none;
+}
+
+.header-actions {
+  gap: 10px;
+}
+
+.header-actions .button {
+  min-height: 36px;
+  padding: 0 17px;
+  border-color: #4a4a4a;
+  border-radius: 4px;
+  background: #3d3d3d;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.header-actions .button.primary {
+  border-color: #4b84c7;
+  background: #4b84c7;
+  color: #fff;
+}
+
+.header-actions .button:hover:not(:disabled) {
+  border-color: #656565;
+  background: #4c4c4c;
+}
+
+.header-actions .button.primary:hover:not(:disabled) {
+  border-color: #5b96dc;
+  background: #5b96dc;
+}
+
+.project-filter {
+  width: 245px;
+  height: 35px;
+  margin: -57px 0 21px auto;
+  padding: 0 10px;
+  border-color: #484848;
+  border-radius: 4px;
+  background: #171717;
+  color: #949494;
+}
+
+.project-filter:focus-within {
+  border-color: #5b9fc8;
+  box-shadow: 0 0 0 1px rgb(91 159 200 / 26%);
+}
+
+.project-table {
+  min-width: 620px;
+  border-top-color: #3b3b3b;
+}
+
+.project-row {
+  min-height: 55px;
+  grid-template-columns: minmax(300px, 1fr) 140px 175px 34px;
+  gap: 12px;
+  padding: 5px 8px;
+  border-bottom-color: #252525;
+  color: #e7e7e7;
+}
+
+.project-table-header {
+  min-height: 40px;
+  background: #202020;
+  color: #b9b9b9;
+  font-size: 11px;
+}
+
+button.project-row:hover {
+  background: #232323;
+}
+
+button.project-row.selected {
+  background: #2d4050;
+  box-shadow: inset 2px 0 #5b9fc8;
+}
+
+.project-icon {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 3px;
+  background: #505050;
+  color: #d7d7d7;
+}
+
+.project-name small,
+.muted {
+  color: #b5b5b5;
+}
+
+@media (max-width: 760px) {
+  .project-center {
+    grid-template-columns: 184px minmax(0, 1fr);
+  }
+
+  .project-sidebar {
+    padding-inline: 10px;
+  }
+
+  .project-content {
+    padding: 22px 18px;
+  }
+
+  .project-filter {
+    width: min(245px, 100%);
+  }
+}
+
 .project-empty {
   padding: 24px 10px;
   color: #858585;
