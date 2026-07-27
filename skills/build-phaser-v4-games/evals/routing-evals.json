@@ -1,0 +1,146 @@
+{
+  "skill_name": "build-phaser-v4-games",
+  "phaser_version": "4.2.1",
+  "evals": [
+    {
+      "topic": "actions-and-utilities",
+      "query": "Use Phaser 4 Actions to distribute a selection of enemies on a circle, rotate them toward the center, then query matching members without adding a custom layout helper.",
+      "core_references": ["gameplay-services-media.md"]
+    },
+    {
+      "topic": "animations",
+      "query": "Create a Phaser 4 atlas animation that can play in reverse, chain into an idle animation, use per-frame durations, and emit frame-specific gameplay presentation events.",
+      "core_references": ["assets-textures-animations.md"]
+    },
+    {
+      "topic": "audio-and-sound",
+      "query": "Add a Phaser 4 audio sprite with named markers, detune, spatial positioning, decode failure handling, mobile unlock, and cross-Scene music ownership.",
+      "core_references": ["cameras-scale-audio-time.md"]
+    },
+    {
+      "topic": "cameras",
+      "query": "Configure two Phaser 4 Cameras with smooth follow, a deadzone, ignore lists, a shake effect, and exact pointer-to-world conversion for the active gameplay camera.",
+      "core_references": ["cameras-scale-audio-time.md"]
+    },
+    {
+      "topic": "curves-and-paths",
+      "query": "Build a Phaser 4 cubic Bezier Path, sample equally spaced points, serialize it to JSON, and move a PathFollower with tangent-based rotation.",
+      "core_references": ["gameplay-services-media.md"]
+    },
+    {
+      "topic": "data-manager",
+      "query": "Use Phaser 4 DataManager change events for presentation metadata, explain registry versus Scene data lifetime, and prevent mutable references from leaking into save state.",
+      "core_references": ["gameplay-services-media.md", "production-playbook.md"]
+    },
+    {
+      "topic": "events-system",
+      "query": "Wire Phaser 4 Scene, Loader, Input, Tween, and Texture events with named constants, stable callback identities, and complete listener cleanup after repeated Scene restart.",
+      "core_references": ["bootstrap-scenes-lifecycle.md", "gameplay-services-media.md"]
+    },
+    {
+      "topic": "filters-and-postfx",
+      "query": "Apply ordered Phaser 4 internal and external filters to a boss, configure controller padding, reject Canvas fallback, and measure render-target cost on mobile WebGL.",
+      "core_references": ["rendering-performance.md"]
+    },
+    {
+      "topic": "game-object-components",
+      "query": "Explain the exact Phaser 4 Transform, Origin, Tint, Mask, Bounds, Lighting, and RenderNodes component APIs available to a custom Game Object.",
+      "core_references": ["gameobjects-input-ui.md", "v4-2-rendering.md"]
+    },
+    {
+      "topic": "game-setup-and-config",
+      "query": "Create a Phaser 4 GameConfig for an existing canvas with explicit WebGL, scale settings, input options, FPS configuration, boot callbacks, and final SPA teardown.",
+      "core_references": ["bootstrap-scenes-lifecycle.md"]
+    },
+    {
+      "topic": "geometry-and-math",
+      "query": "Use Phaser 4 geometry intersections, seeded random generation, vectors, angle wrapping, interpolation, and color utilities in deterministic gameplay code.",
+      "core_references": ["gameplay-services-media.md"]
+    },
+    {
+      "topic": "graphics-and-shapes",
+      "query": "Draw a Phaser 4 compound Graphics path with fill and stroke styles, generate a static texture from it, and define a matching interactive hit area.",
+      "core_references": ["gameobjects-input-ui.md", "rendering-performance.md"]
+    },
+    {
+      "topic": "groups-and-containers",
+      "query": "Choose between Phaser 4 Group, Container, and Layer for pooled bullets, transformed UI clusters, and render ordering while avoiding deep hierarchy costs.",
+      "core_references": ["gameobjects-input-ui.md", "production-playbook.md"]
+    },
+    {
+      "topic": "input-keyboard-mouse-touch",
+      "query": "Implement Phaser 4 pointer drag and drop zones, keyboard combos, touch cancellation, wheel behavior, gamepad parity, and accessible DOM controls.",
+      "core_references": ["gameobjects-input-ui.md"]
+    },
+    {
+      "topic": "loading-assets",
+      "query": "Load Phaser 4 atlases, audio, JSON, tilemaps, bitmap fonts, and a pack file with progress, failure, retry, mid-load additions, and explicit cache release.",
+      "core_references": ["assets-textures-animations.md"]
+    },
+    {
+      "topic": "particles",
+      "query": "Configure a Phaser 4 ParticleEmitter with an emission zone, death zone, processor, follow target, preallocated pool, and measurable low-end mobile budget.",
+      "core_references": ["tilemaps-particles.md", "rendering-performance.md"]
+    },
+    {
+      "topic": "physics-arcade",
+      "query": "Implement Phaser 4 Arcade dynamic and static bodies, physics groups, category filtering, colliders, overlaps, world bounds, and restart-safe ownership.",
+      "core_references": ["physics.md"]
+    },
+    {
+      "topic": "physics-matter",
+      "query": "Implement Phaser 4 Matter compound bodies, constraints, sensors, sleeping, collision filters, spatial queries, and stable replay identifiers.",
+      "core_references": ["physics.md"]
+    },
+    {
+      "topic": "render-textures",
+      "query": "Compare Phaser 4 RenderTexture with DynamicTexture, issue draw and erase commands, execute rendering explicitly, capture a frame, and survive WebGL context restoration.",
+      "core_references": ["rendering-performance.md", "migration-v3-v4.md"]
+    },
+    {
+      "topic": "scale-and-responsive",
+      "query": "Choose a Phaser 4 ScaleManager mode for a responsive mobile game, handle orientation and fullscreen events, account for safe areas, and verify pointer mapping at high DPR.",
+      "core_references": ["cameras-scale-audio-time.md"]
+    },
+    {
+      "topic": "scenes",
+      "query": "Design Phaser 4 parallel gameplay and HUD Scenes with transitions, payloads, pause, sleep, wake, restart, queued operations, and symmetric shutdown cleanup.",
+      "core_references": ["bootstrap-scenes-lifecycle.md"]
+    },
+    {
+      "topic": "sprites-and-images",
+      "query": "Choose Phaser 4 Image versus Sprite for textured objects, then configure frames, origin, crop, tint, blend mode, depth, bounds, and pooling behavior.",
+      "core_references": ["gameobjects-input-ui.md"]
+    },
+    {
+      "topic": "text-and-bitmaptext",
+      "query": "Build localized Phaser 4 Text and BitmapText labels with wrapping, padding, RTL support, resolution control, font readiness, and frequent counter updates.",
+      "core_references": ["gameobjects-input-ui.md", "rendering-performance.md"]
+    },
+    {
+      "topic": "tilemaps",
+      "query": "Load a Phaser 4 Tiled JSON map with tile properties, object layers, collision callbacks, animated tiles, camera culling, runtime edits, and streaming boundaries.",
+      "core_references": ["tilemaps-particles.md"]
+    },
+    {
+      "topic": "time-and-timers",
+      "query": "Use Phaser 4 Clock, TimerEvent, and Timeline APIs for a pausable cutscene with progress display, time scaling, removal, and Scene-owned cleanup.",
+      "core_references": ["cameras-scale-audio-time.md"]
+    },
+    {
+      "topic": "tweens",
+      "query": "Build Phaser 4 tween chains with stagger, easing, yoyo, callbacks, playback controls, reduced-motion behavior, and no conflict with physics-owned transforms.",
+      "core_references": ["cameras-scale-audio-time.md"]
+    },
+    {
+      "topic": "v3-to-v4-migration",
+      "query": "Migrate Phaser 3 Pipelines, FX, BitmapMask, RenderTexture drawing, tint behavior, cameras, shaders, removed Game Objects, and plugins to Phaser 4.2.1.",
+      "core_references": ["migration-v3-v4.md"]
+    },
+    {
+      "topic": "v4-new-features",
+      "query": "Use Phaser 4 CaptureFrame, Gradient, Noise Game Objects, SpriteGPULayer, TilemapGPULayer, lighting, filters, and RenderSteps with exact factory casing.",
+      "core_references": ["v4-2-rendering.md"]
+    }
+  ]
+}

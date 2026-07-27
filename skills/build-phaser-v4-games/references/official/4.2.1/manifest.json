@@ -1,0 +1,262 @@
+{
+  "schemaVersion": 1,
+  "phaserVersion": "4.2.1",
+  "phaserRelease": "Giedi",
+  "gitCommit": "41be1e462bc600064e498cba370bfa8c5c055a22",
+  "generatedAt": "2026-07-24T02:34:53.943Z",
+  "sourceDirectory": "skills",
+  "topicCount": 28,
+  "entryPolicy": "Only the root build-phaser-v4-games/SKILL.md is a skill entry; vendored topics are references.",
+  "corrections": [
+    {
+      "topic": "v4-new-features",
+      "correction": "this.add.noiseCell2D -> this.add.noisecell2d"
+    },
+    {
+      "topic": "v4-new-features",
+      "correction": "this.add.noiseCell3D -> this.add.noisecell3d"
+    },
+    {
+      "topic": "v4-new-features",
+      "correction": "this.add.noiseCell4D -> this.add.noisecell4d"
+    },
+    {
+      "topic": "v4-new-features",
+      "correction": "this.add.noiseSimplex2D -> this.add.noisesimplex2d"
+    },
+    {
+      "topic": "v4-new-features",
+      "correction": "this.add.noiseSimplex3D -> this.add.noisesimplex3d"
+    }
+  ],
+  "files": [
+    {
+      "topic": "actions-and-utilities",
+      "sourceSkill": "skills/actions-and-utilities/SKILL.md",
+      "sourceSkillSha256": "ad5cae4a4eeb581c9bdbb8316dbdffb112c205899ebc25ea2855f9fba3267953",
+      "vendoredTopic": "actions-and-utilities/topic.md",
+      "vendoredTopicSha256": "2627096ead6985b3d1e788ce4b323157e0d57f456eda3251c0d79d1425eaae76"
+    },
+    {
+      "topic": "animations",
+      "sourceSkill": "skills/animations/SKILL.md",
+      "sourceSkillSha256": "42efb9b5d85eeed7249fc122f3a5ea81a8c53e8efee8976ffecd0a2a8fee0ab3",
+      "vendoredTopic": "animations/topic.md",
+      "vendoredTopicSha256": "d799f2dc547b116167fb534ddfa03ce10e0fdf9fc72551d3a581168058a25571"
+    },
+    {
+      "topic": "audio-and-sound",
+      "sourceSkill": "skills/audio-and-sound/SKILL.md",
+      "sourceSkillSha256": "22190956702626376ea4d6f804902a38c0a32021719951b1047fa9e4797b599f",
+      "vendoredTopic": "audio-and-sound/topic.md",
+      "vendoredTopicSha256": "4667132d964d8d9969353ffdb893698ebbbadcf00ca6b31456859dd5863cd062"
+    },
+    {
+      "topic": "cameras",
+      "sourceSkill": "skills/cameras/SKILL.md",
+      "sourceSkillSha256": "80e4085ca549ec1c67462d284210d7fc9a020e04e9c3338cd1e52e0e4db63e9a",
+      "vendoredTopic": "cameras/topic.md",
+      "vendoredTopicSha256": "ee82842c342cd80b0108f8d6bbd768611804d7dede701a5cf47c7d3cfcd09619",
+      "sourceReference": "skills/cameras/references/REFERENCE.md",
+      "sourceReferenceSha256": "43edd9c1a4670aa9c2cd1cf6543fda102e0dddb6678edd8e85e1ab10a566e905",
+      "vendoredReference": "cameras/reference.md",
+      "vendoredReferenceSha256": "1713cd074b82e2c17b3c387cc7dcfa4c2957828083b125d03a73689ef268eefa"
+    },
+    {
+      "topic": "curves-and-paths",
+      "sourceSkill": "skills/curves-and-paths/SKILL.md",
+      "sourceSkillSha256": "a5823363df69afe412403ec9f018476bcf18181ba02de6dd3b2e407c47dc273c",
+      "vendoredTopic": "curves-and-paths/topic.md",
+      "vendoredTopicSha256": "0997fba36de836d9cddedb2105af4113dde2d3e219edabd1d60404e7c35c2611"
+    },
+    {
+      "topic": "data-manager",
+      "sourceSkill": "skills/data-manager/SKILL.md",
+      "sourceSkillSha256": "ead8d19a04388f4a930cec1ee27398b44c70525a0cfd255ff88654ea8b4f4058",
+      "vendoredTopic": "data-manager/topic.md",
+      "vendoredTopicSha256": "1fc23610ff59cd58fc4dfa959c71126e381643d92d4be6708d01100aa4baf7a2"
+    },
+    {
+      "topic": "events-system",
+      "sourceSkill": "skills/events-system/SKILL.md",
+      "sourceSkillSha256": "9453d165e0d61149fef3f10bfb6c7518ad943fb60389018c717322b4305962ab",
+      "vendoredTopic": "events-system/topic.md",
+      "vendoredTopicSha256": "13353ab2e0558e5657ba329e5d070a65bb17fd0affd47ecff085685e63fdaa8d"
+    },
+    {
+      "topic": "filters-and-postfx",
+      "sourceSkill": "skills/filters-and-postfx/SKILL.md",
+      "sourceSkillSha256": "25780632c70b78e736de5e31a34f827aac984cd94610a53838a97e6e66133441",
+      "vendoredTopic": "filters-and-postfx/topic.md",
+      "vendoredTopicSha256": "e00bd9fc8876ce01bfce1367d136719ed61655a83223d3db2997d4fdd793782e"
+    },
+    {
+      "topic": "game-object-components",
+      "sourceSkill": "skills/game-object-components/SKILL.md",
+      "sourceSkillSha256": "3d973f213f4d14255e82a816441f53630fe8e44478d87665fce3532d0ed8e784",
+      "vendoredTopic": "game-object-components/topic.md",
+      "vendoredTopicSha256": "89bdf66152e6a109ea2374950c0b2079b2baf5cac686c2b4cd02ec675e260225",
+      "sourceReference": "skills/game-object-components/references/REFERENCE.md",
+      "sourceReferenceSha256": "cdc548bd4a0bcca4ef74ab0f1d6f0a34eca3733df27b40168ffcb4f3c7d42e85",
+      "vendoredReference": "game-object-components/reference.md",
+      "vendoredReferenceSha256": "7ea802bf29956a6d28cdfcc4f0091e5223a12cab93f0d052896fbec4397d120d"
+    },
+    {
+      "topic": "game-setup-and-config",
+      "sourceSkill": "skills/game-setup-and-config/SKILL.md",
+      "sourceSkillSha256": "f21465f569131b677580550f8d1740f50f22ab64e3af7790f55fb16e32bf5428",
+      "vendoredTopic": "game-setup-and-config/topic.md",
+      "vendoredTopicSha256": "54f166819f1eb28b2c8c2260de54234fd29bf32673d2d88d9dd4fe48a47dcafc"
+    },
+    {
+      "topic": "geometry-and-math",
+      "sourceSkill": "skills/geometry-and-math/SKILL.md",
+      "sourceSkillSha256": "2003da424f799d20d01af4347449afd2f46b6beacde87a5bd23047593d8fb5c8",
+      "vendoredTopic": "geometry-and-math/topic.md",
+      "vendoredTopicSha256": "8c96238158958e744bc5ac6de3b4a3e8372cd2c2f6d7b64fa819e14b49dcd8e5"
+    },
+    {
+      "topic": "graphics-and-shapes",
+      "sourceSkill": "skills/graphics-and-shapes/SKILL.md",
+      "sourceSkillSha256": "7e21c540d0b541c20a25f7d98ee1294edaf9af33f728b94f08e20c13ed621c04",
+      "vendoredTopic": "graphics-and-shapes/topic.md",
+      "vendoredTopicSha256": "7e67484620e86da1b7ac1c07e5ec48a6dce2b50bd045d627c59279e4c1caef10"
+    },
+    {
+      "topic": "groups-and-containers",
+      "sourceSkill": "skills/groups-and-containers/SKILL.md",
+      "sourceSkillSha256": "140af7997dc6734def17f6a26932c3a30993014225c03fb05958a73b1d7e5247",
+      "vendoredTopic": "groups-and-containers/topic.md",
+      "vendoredTopicSha256": "997f7e90f79b4e4628f11e1de2be0c0c42357682a8574c7c7b4b9a4e91869725"
+    },
+    {
+      "topic": "input-keyboard-mouse-touch",
+      "sourceSkill": "skills/input-keyboard-mouse-touch/SKILL.md",
+      "sourceSkillSha256": "989eb1d4d103258caad4cc6806a47b337fd92f525fd7e30dc2214dbed08e172a",
+      "vendoredTopic": "input-keyboard-mouse-touch/topic.md",
+      "vendoredTopicSha256": "ab474df54630be8c610ce03ba303d5350f73df026486b307f23e74cb16725ac3",
+      "sourceReference": "skills/input-keyboard-mouse-touch/references/REFERENCE.md",
+      "sourceReferenceSha256": "0142a82b5a0730ac6f2475df945cdd5d82ab477f68e6d17f72016c49bbe9ba1f",
+      "vendoredReference": "input-keyboard-mouse-touch/reference.md",
+      "vendoredReferenceSha256": "43533ed593b1128a2f3c52762f28a883572a7a6f70ebbb55add8ce04b202082c"
+    },
+    {
+      "topic": "loading-assets",
+      "sourceSkill": "skills/loading-assets/SKILL.md",
+      "sourceSkillSha256": "d796b330331538fae7d93907cd9de21b60bf5832fd0128f3a1e2c396e07e1445",
+      "vendoredTopic": "loading-assets/topic.md",
+      "vendoredTopicSha256": "f812c42eb0ae64a9629680ef7cc7699545e1e32a04b162c8ff6982ece005277e",
+      "sourceReference": "skills/loading-assets/references/REFERENCE.md",
+      "sourceReferenceSha256": "612d354cb8878cdbccbdaa99ea7dbd8a7a6e6af9f02a513c47d95f5c0f367973",
+      "vendoredReference": "loading-assets/reference.md",
+      "vendoredReferenceSha256": "9151d7d295e4c6e8542d4c2df64291caf8e34590d617d484fae7bb05bb73db5f"
+    },
+    {
+      "topic": "particles",
+      "sourceSkill": "skills/particles/SKILL.md",
+      "sourceSkillSha256": "f85397e8518eb80b7fc667aef3a542a3c260712c44c2e1d7f88e4d209bb9204c",
+      "vendoredTopic": "particles/topic.md",
+      "vendoredTopicSha256": "5435b3c5c008563f8d4d45d1e31424831049505105f42edde71d694ba739c0e6",
+      "sourceReference": "skills/particles/references/REFERENCE.md",
+      "sourceReferenceSha256": "cfe9e9f5b6a2bdc1a14175fb676d699eab283a231631f7ac2b215ab8a6f71215",
+      "vendoredReference": "particles/reference.md",
+      "vendoredReferenceSha256": "9f3c4a7c8d78130b88c00fa9e3de7f1060c35559a0077164437acbf5903bf7e4"
+    },
+    {
+      "topic": "physics-arcade",
+      "sourceSkill": "skills/physics-arcade/SKILL.md",
+      "sourceSkillSha256": "0b201c2c1eb8e0aeb2447e5ef14ab7524d6b10f23d4556f3a09f20402f0a824f",
+      "vendoredTopic": "physics-arcade/topic.md",
+      "vendoredTopicSha256": "0100cba19320c4f87d97297eb00b8fe4cbf10e751a00c3186bfb7a63aa9eebfe"
+    },
+    {
+      "topic": "physics-matter",
+      "sourceSkill": "skills/physics-matter/SKILL.md",
+      "sourceSkillSha256": "a5439e43377d8e2641ea0e9db792f5c8650791c0c44da9f4fd357343cc063a78",
+      "vendoredTopic": "physics-matter/topic.md",
+      "vendoredTopicSha256": "787cb55de195cb24edf688a2afb879f46af2ff21bb658333b7aa78d4d4b31509"
+    },
+    {
+      "topic": "render-textures",
+      "sourceSkill": "skills/render-textures/SKILL.md",
+      "sourceSkillSha256": "a41d64dc00d309002fffd15683f1ed70d8cffa5ed819bd2faac6f79e0d384d7d",
+      "vendoredTopic": "render-textures/topic.md",
+      "vendoredTopicSha256": "e5b405ffa7211cf4936dba202d1c5f1bcb06a37eac46547dfc5bc43166a5b605"
+    },
+    {
+      "topic": "scale-and-responsive",
+      "sourceSkill": "skills/scale-and-responsive/SKILL.md",
+      "sourceSkillSha256": "9f2578debba9a1f31f019f15df295d424e740ec325e13d7629bf6c373cb5e34f",
+      "vendoredTopic": "scale-and-responsive/topic.md",
+      "vendoredTopicSha256": "4b2e073d20ee8d094c089fa33936485c12e2dc13325a5673bfcdc4ef966217e1"
+    },
+    {
+      "topic": "scenes",
+      "sourceSkill": "skills/scenes/SKILL.md",
+      "sourceSkillSha256": "1d6946387e321bc3446b9b2383b68da57749a3954c91f9c4a96e411c1d1eb36e",
+      "vendoredTopic": "scenes/topic.md",
+      "vendoredTopicSha256": "a0d08e454133f5faa755be4ed3bf57c6759567436b1e555642d14854cb864692",
+      "sourceReference": "skills/scenes/references/REFERENCE.md",
+      "sourceReferenceSha256": "c8d220bbfcbe4bfcf3b2d7c897a4f3de369163531e1437ca6cf6cb0358d52f19",
+      "vendoredReference": "scenes/reference.md",
+      "vendoredReferenceSha256": "f162b8f354b420b6a55772426ea68b845703668127e2c9b4029eaffac8e79540"
+    },
+    {
+      "topic": "sprites-and-images",
+      "sourceSkill": "skills/sprites-and-images/SKILL.md",
+      "sourceSkillSha256": "aa51941c21a85ea9f67814ee3b16371061a69584def55ea12e1e3af8b56dc650",
+      "vendoredTopic": "sprites-and-images/topic.md",
+      "vendoredTopicSha256": "a5a4101a722eeac2696c103f8f205e4513e7c4bcb310d80b41d103953e829d67",
+      "sourceReference": "skills/sprites-and-images/references/REFERENCE.md",
+      "sourceReferenceSha256": "625b2b0f8d97224465ccdd94621033e1cb7f5955e4c76a0fd5e7613b001c6a06",
+      "vendoredReference": "sprites-and-images/reference.md",
+      "vendoredReferenceSha256": "1df7e69cc4cc7540857130e2e5f9ef3c58c9b1e40c434f3610529e800984d489"
+    },
+    {
+      "topic": "text-and-bitmaptext",
+      "sourceSkill": "skills/text-and-bitmaptext/SKILL.md",
+      "sourceSkillSha256": "77a6c9609ce98fff356a85347286069eb13fa44146cf77986ec0bd622a818881",
+      "vendoredTopic": "text-and-bitmaptext/topic.md",
+      "vendoredTopicSha256": "504e835e281fb0a755fdb95a5252099fd7e5299b77f31c17a084133f4ecab3c0"
+    },
+    {
+      "topic": "tilemaps",
+      "sourceSkill": "skills/tilemaps/SKILL.md",
+      "sourceSkillSha256": "baff487084a8bb49d9df87518aa04fc7244632c2ea2baba68529f201bd575211",
+      "vendoredTopic": "tilemaps/topic.md",
+      "vendoredTopicSha256": "49d87906774011f41064f25f144260e67f4f33f3cafba9e670d09573421cbd3a"
+    },
+    {
+      "topic": "time-and-timers",
+      "sourceSkill": "skills/time-and-timers/SKILL.md",
+      "sourceSkillSha256": "1654d012fcf72e953316a3b42e9b414652b64c438dde86ccf87ce9eb9a089f6c",
+      "vendoredTopic": "time-and-timers/topic.md",
+      "vendoredTopicSha256": "d49655c1d2387877979081a1146d59cf18829fb966d8c34217d58a97a70d406c"
+    },
+    {
+      "topic": "tweens",
+      "sourceSkill": "skills/tweens/SKILL.md",
+      "sourceSkillSha256": "af948c2c168b963483800f7dc3f2a8270bcab415380937b30673c7a2b14ec7e0",
+      "vendoredTopic": "tweens/topic.md",
+      "vendoredTopicSha256": "de856c4918916e63b09aedf7b371c913350b5976a6e29949d5c2f6a4cecee5aa"
+    },
+    {
+      "topic": "v3-to-v4-migration",
+      "sourceSkill": "skills/v3-to-v4-migration/SKILL.md",
+      "sourceSkillSha256": "29fa90c1fdb47f470fe5a7ee968527fb07f6c702cd175ebf22afe35ef354f58d",
+      "vendoredTopic": "v3-to-v4-migration/topic.md",
+      "vendoredTopicSha256": "724558edb27b89fb72b9e2ceaeeb33fc223ca2377d8b5ddefafa9326fbd91115"
+    },
+    {
+      "topic": "v4-new-features",
+      "sourceSkill": "skills/v4-new-features/SKILL.md",
+      "sourceSkillSha256": "f254246385786aa15a91a3c359dee0118111adfb678b220f8ea5714551a3d1e1",
+      "vendoredTopic": "v4-new-features/topic.md",
+      "vendoredTopicSha256": "ad1dd75facf363a597312fbc4af1d51caa461f612417fe142959407d317f56aa",
+      "sourceReference": "skills/v4-new-features/references/REFERENCE.md",
+      "sourceReferenceSha256": "bfc233d581d25e9c4a7df21da1309793cfc1e31c58bce216f21f604ac23e6b1f",
+      "vendoredReference": "v4-new-features/reference.md",
+      "vendoredReferenceSha256": "3233ca9f1d332bbc135d5ee3223651e940013f4c3dcaac60594854615b5ffcac"
+    }
+  ]
+}

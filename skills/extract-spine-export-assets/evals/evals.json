@@ -1,0 +1,41 @@
+{
+  "skill_name": "extract-spine-export-assets",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "请把 C:\\Users\\me\\Downloads\\Export\\Export 里的 monster_ 开头 Spine 资源整理到 D:\\game\\public\\assets\\spine_monster。Texture2D 里带 Low 和 _placeholder 的 PNG 不要，TextAsset 里的同名 skel.asset 和 atlas.asset 要分别改成 .skel 和 .atlas.txt，每只怪一个目录。",
+      "expected_output": "The skill previews and then extracts every complete monster resource into a three-file per-resource directory without copying excluded variants.",
+      "files": [],
+      "expectations": [
+        "Uses monster_* as the required resource selection pattern",
+        "Excludes names containing Low and _placeholder",
+        "Pairs PNG, skel.asset, and atlas.asset by exact stem",
+        "Runs a dry preflight before copying and verifies copied hashes"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "把这批 Unity 导出的 hero_ 和 npc_ Spine 一起提炼到项目 assets/spine 目录。贴图在 E:\\dump\\textures，TextAsset 在 E:\\dump\\text，不在同一个根目录；preview、Low、placeholder 版本都排除。已有完全相同的文件不要重复覆盖。",
+      "expected_output": "The skill uses multiple include patterns, explicit source roots, custom exclusions, and safely leaves byte-identical destinations unchanged.",
+      "files": [],
+      "expectations": [
+        "Uses both hero_* and npc_* patterns",
+        "Passes explicit TextureRoot and TextAssetRoot locations",
+        "Adds preview to the exclusions while retaining Low and placeholder exclusions",
+        "Treats matching destination hashes as unchanged"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "整理 boss_ Spine 资源时发现两个子目录里都有 boss_900.atlas.asset，而且 boss_901 没有 skel.asset。先帮我整理能确定的，冲突的你自己挑新的那个。",
+      "expected_output": "The skill refuses to guess between duplicate or incomplete source sets and produces no partial batch before the ambiguity is resolved.",
+      "files": [],
+      "expectations": [
+        "Reports both duplicate atlas paths",
+        "Reports the missing boss_901 skeleton",
+        "Does not choose a source based on timestamp or path order",
+        "Does not write a partial batch after preflight failure"
+      ]
+    }
+  ]
+}

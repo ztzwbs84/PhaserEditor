@@ -1,0 +1,82 @@
+[
+  {
+    "query": "Build a Phaser 4.2.1 TypeScript platformer with Arcade Physics, Tiled levels, responsive cameras, gamepad controls, loading errors, and leak-free Scene restart.",
+    "should_trigger": true
+  },
+  {
+    "query": "Migrate our Phaser 3.90 game to Phaser 4, replacing custom Pipelines, preFX, BitmapMask, Mesh objects, setTintFill, and old RenderTexture behavior.",
+    "should_trigger": true
+  },
+  {
+    "query": "Review this Phaser 4 pull request for Scene lifecycle leaks, global texture ownership, duplicate animations, Arcade collision errors, and missing mobile browser tests.",
+    "should_trigger": true
+  },
+  {
+    "query": "Our Phaser 4 RPG is slow on Android with hundreds of Text objects, filters, particles, deep Containers, high DPR, and a huge Tilemap; profile and fix it.",
+    "should_trigger": true
+  },
+  {
+    "query": "Implement Phaser 4.2 Mesh2D, CustomContext, stencilreference, cone lighting, secondary tint, and setFPSLimit with strict TypeScript and source-checked API casing.",
+    "should_trigger": true
+  },
+  {
+    "query": "Architect a commercial Phaser browser game with deterministic replay, versioned saves, network reconnect, cross-Scene audio, content bundles, and long-session memory testing.",
+    "should_trigger": true
+  },
+  {
+    "query": "Fix pointer coordinates in a Phaser tactical map with two Cameras, draggable units, a modal HUD Scene, wheel zoom, keyboard parity, and accessible controls.",
+    "should_trigger": true
+  },
+  {
+    "query": "Choose between Phaser 4 CPU TilemapLayer and TilemapGPULayer for a giant orthogonal world with frequent collision edits and a possible Canvas fallback.",
+    "should_trigger": true
+  },
+  {
+    "query": "Build Phaser 4 cutscenes with Video, timed captions, audio unlock, seeking, visibility pause, late-event cancellation, and safe transitions back to gameplay.",
+    "should_trigger": true
+  },
+  {
+    "query": "Create and test a reusable Phaser 4 Scene Plugin and custom Game Object, and decide whether a Filter, Mesh2D, or RenderNode is the right rendering extension.",
+    "should_trigger": true
+  },
+  {
+    "query": "Optimize a PixiJS v8 inventory with ParticleContainer, Assets bundles, federated pointer events, RenderLayers, and an OffscreenCanvas worker renderer.",
+    "should_trigger": false
+  },
+  {
+    "query": "Maintain this Phaser 3.90 game without upgrading it; fix an Arcade Physics collision regression using only APIs supported by the existing Phaser 3 runtime.",
+    "should_trigger": false
+  },
+  {
+    "query": "Create a Three.js WebGPU ocean shader with compute-generated waves, instanced rocks, post-processing, orbit controls, and no 2D game framework integration.",
+    "should_trigger": false
+  },
+  {
+    "query": "Generate a transparent pixel-art sprite sheet with eight walking directions and four attack frames per direction; no engine code or runtime integration is needed.",
+    "should_trigger": false
+  },
+  {
+    "query": "Build a React DOM card game using CSS transforms, semantic buttons, drag and drop, Web Animations API, and no canvas-based rendering engine.",
+    "should_trigger": false
+  },
+  {
+    "query": "Diagnose a plain CanvasRenderingContext2D chart that looks blurry at devicePixelRatio 3 and add pointer hit testing without introducing any framework.",
+    "should_trigger": false
+  },
+  {
+    "query": "Create a Unity 6 mobile platformer with URP lights, Cinemachine cameras, the new Input System, Addressables, and native Android build profiling.",
+    "should_trigger": false
+  },
+  {
+    "query": "Write a Godot 4 TileMapLayer streaming system in GDScript with CharacterBody2D physics, packed scenes, navigation regions, and save-game resources.",
+    "should_trigger": false
+  },
+  {
+    "query": "Implement a server-authoritative Node.js matchmaking service with WebSocket reconnect, Redis persistence, rate limiting, tracing, and no browser rendering code.",
+    "should_trigger": false
+  },
+  {
+    "query": "Compare PixiJS and Phaser for a future project at a high level, but do not build, debug, review, optimize, or migrate any Phaser 4 code yet.",
+    "should_trigger": false
+  }
+]

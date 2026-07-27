@@ -1,0 +1,469 @@
+{
+  "schemaVersion": 1,
+  "skill": "build-phaser-v4-games",
+  "targetMajor": 4,
+  "validatedVersion": "4.2.1",
+  "packageExpectations": {
+    "name": "phaser",
+    "types": "./types/phaser.d.ts",
+    "rootExports": [".", "./package.json"]
+  },
+  "anchors": [
+    {
+      "id": "game-destroy",
+      "description": "Final Game teardown is deferred and accepts removeCanvas/noReturn.",
+      "since": "4.0.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class Game \\{",
+        "memberPatterns": ["^\\s*destroy\\(removeCanvas: boolean, noReturn\\?: boolean\\): void;"]
+      },
+      "sources": [
+        {
+          "path": "src/core/Game.js",
+          "patterns": [
+            "destroy: function \\(removeCanvas, noReturn\\)",
+            "this\\.pendingDestroy = true;"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "camera-get-world-point",
+      "description": "BaseCamera coordinate conversion owns the x/y/output signature.",
+      "since": "4.0.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class BaseCamera extends Phaser\\.Events\\.EventEmitter",
+        "memberPatterns": ["getWorldPoint<O extends Phaser\\.Math\\.Vector2>\\(x: number, y: number, output\\?: O\\): O;"]
+      },
+      "sources": [
+        {
+          "path": "src/cameras/2d/BaseCamera.js",
+          "patterns": ["getWorldPoint: function \\(x, y, output\\)"]
+        }
+      ]
+    },
+    {
+      "id": "pointer-position-to-camera",
+      "description": "Pointer conversion delegates to a specific Camera.",
+      "since": "4.0.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class Pointer \\{",
+        "memberPatterns": ["positionToCamera\\(camera: Phaser\\.Cameras\\.Scene2D\\.Camera, output\\?: Phaser\\.Math\\.Vector2 \\| object\\): Phaser\\.Math\\.Vector2 \\| object;"]
+      },
+      "sources": [
+        {
+          "path": "src/input/Pointer.js",
+          "patterns": [
+            "positionToCamera: function \\(camera, output\\)",
+            "return camera\\.getWorldPoint\\(this\\.x, this\\.y, output\\);"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "loader-explicit-start",
+      "description": "LoaderPlugin exposes start for queues populated outside preload.",
+      "since": "4.0.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class LoaderPlugin extends Phaser\\.Events\\.EventEmitter",
+        "memberPatterns": ["^\\s*start\\(\\): void;"]
+      },
+      "sources": [
+        {
+          "path": "src/loader/LoaderPlugin.js",
+          "patterns": ["start: function \\(\\)"]
+        }
+      ]
+    },
+    {
+      "id": "gameobject-enable-filters",
+      "description": "Filter state is initialized explicitly on Game Objects.",
+      "since": "4.0.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class GameObject extends Phaser\\.Events\\.EventEmitter",
+        "memberPatterns": ["^\\s*enableFilters\\(\\): this;"]
+      },
+      "sources": [
+        {
+          "path": "src/gameobjects/components/Filters.js",
+          "patterns": ["enableFilters: function \\(\\)"]
+        }
+      ]
+    },
+    {
+      "id": "dynamic-texture-render",
+      "description": "DynamicTexture uses an explicit command-buffer render call.",
+      "since": "4.0.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class DynamicTexture extends Phaser\\.Textures\\.Texture",
+        "memberPatterns": ["^\\s*render\\(\\): this;"]
+      },
+      "sources": [
+        {
+          "path": "src/textures/DynamicTexture.js",
+          "patterns": ["render: function \\(\\)"]
+        }
+      ]
+    },
+    {
+      "id": "render-texture-render",
+      "description": "RenderTexture uses an explicit command-buffer render call.",
+      "since": "4.0.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class RenderTexture extends Phaser\\.GameObjects\\.Image",
+        "memberPatterns": ["^\\s*render\\(\\): void;"]
+      },
+      "sources": [
+        {
+          "path": "src/gameobjects/rendertexture/RenderTexture.js",
+          "patterns": ["render: function \\(\\)"]
+        }
+      ]
+    },
+    {
+      "id": "tilemap-gpu-layer-factory",
+      "description": "Tilemap#createLayer selects a CPU or GPU layer with the gpu argument.",
+      "since": "4.0.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class Tilemap \\{",
+        "memberPatterns": ["createLayer\\(layerID: number \\| string, tileset: string \\| string\\[\\] \\| Phaser\\.Tilemaps\\.Tileset \\| Phaser\\.Tilemaps\\.Tileset\\[\\], x\\?: number, y\\?: number, gpu\\?: boolean\\): Phaser\\.Tilemaps\\.TilemapLayer \\| Phaser\\.Tilemaps\\.TilemapGPULayer;"]
+      },
+      "sources": [
+        {
+          "path": "src/tilemaps/Tilemap.js",
+          "patterns": ["createLayer: function \\(layerID, tileset, x, y, gpu\\)"]
+        }
+      ]
+    },
+    {
+      "id": "tilemap-gpu-regeneration",
+      "description": "TilemapGPULayer exposes explicit data-texture regeneration after edits.",
+      "since": "4.0.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class TilemapGPULayer extends Phaser\\.Tilemaps\\.TilemapLayerBase",
+        "memberPatterns": ["^\\s*generateLayerDataTexture\\(\\): void;"]
+      },
+      "sources": [
+        {
+          "path": "src/tilemaps/TilemapGPULayer.js",
+          "patterns": ["generateLayerDataTexture: function \\(\\)"]
+        }
+      ]
+    },
+    {
+      "id": "particle-reserve",
+      "description": "ParticleEmitter can preallocate its pool with reserve.",
+      "since": "4.0.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class ParticleEmitter extends Phaser\\.GameObjects\\.GameObject",
+        "memberPatterns": ["^\\s*reserve\\(count: number\\): this;"]
+      },
+      "sources": [
+        {
+          "path": "src/gameobjects/particles/ParticleEmitter.js",
+          "patterns": ["reserve: function \\(count\\)"]
+        }
+      ]
+    },
+    {
+      "id": "sprite-gpu-layer-factory",
+      "description": "GameObjectFactory exposes SpriteGPULayer with a fixed capacity.",
+      "since": "4.0.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class GameObjectFactory \\{",
+        "memberPatterns": ["spriteGPULayer\\(texture: string \\| Phaser\\.Textures\\.Texture, size\\?: number\\): Phaser\\.GameObjects\\.SpriteGPULayer;"]
+      },
+      "sources": [
+        {
+          "path": "src/gameobjects/spritegpulayer/SpriteGPULayerFactory.js",
+          "patterns": ["GameObjectFactory\\.register\\('spriteGPULayer'", "new SpriteGPULayer\\(this\\.scene, texture, size\\)"]
+        }
+      ]
+    },
+    {
+      "id": "noise-factory-casing",
+      "description": "Noise Game Object factories use lowercase runtime and declaration names.",
+      "since": "4.0.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class GameObjectFactory \\{",
+        "memberPatterns": [
+          "noisecell2d\\(config\\?: string \\| Phaser\\.Types\\.GameObjects\\.NoiseCell2D\\.NoiseCell2DQuadConfig, x\\?: number, y\\?: number, width\\?: number, height\\?: number\\): Phaser\\.GameObjects\\.NoiseCell2D;",
+          "noisecell3d\\(config\\?: string \\| Phaser\\.Types\\.GameObjects\\.NoiseCell3D\\.NoiseCell3DQuadConfig, x\\?: number, y\\?: number, width\\?: number, height\\?: number\\): Phaser\\.GameObjects\\.NoiseCell3D;",
+          "noisecell4d\\(config\\?: string \\| Phaser\\.Types\\.GameObjects\\.NoiseCell4D\\.NoiseCell4DQuadConfig, x\\?: number, y\\?: number, width\\?: number, height\\?: number\\): Phaser\\.GameObjects\\.NoiseCell4D;",
+          "noisesimplex2d\\(config\\?: string \\| Phaser\\.Types\\.GameObjects\\.NoiseSimplex2D\\.NoiseSimplex2DQuadConfig, x\\?: number, y\\?: number, width\\?: number, height\\?: number\\): Phaser\\.GameObjects\\.NoiseSimplex2D;",
+          "noisesimplex3d\\(config\\?: string \\| Phaser\\.Types\\.GameObjects\\.NoiseSimplex3D\\.NoiseSimplex3DQuadConfig, x\\?: number, y\\?: number, width\\?: number, height\\?: number\\): Phaser\\.GameObjects\\.NoiseSimplex3D;"
+        ]
+      },
+      "sources": [
+        {
+          "path": "src/gameobjects/noise/noisecell2d/NoiseCell2DFactory.js",
+          "patterns": ["GameObjectFactory\\.register\\('noisecell2d'"]
+        },
+        {
+          "path": "src/gameobjects/noise/noisecell3d/NoiseCell3DFactory.js",
+          "patterns": ["GameObjectFactory\\.register\\('noisecell3d'"]
+        },
+        {
+          "path": "src/gameobjects/noise/noisecell4d/NoiseCell4DFactory.js",
+          "patterns": ["GameObjectFactory\\.register\\('noisecell4d'"]
+        },
+        {
+          "path": "src/gameobjects/noise/noisesimplex2d/NoiseSimplex2DFactory.js",
+          "patterns": ["GameObjectFactory\\.register\\('noisesimplex2d'"]
+        },
+        {
+          "path": "src/gameobjects/noise/noisesimplex3d/NoiseSimplex3DFactory.js",
+          "patterns": ["GameObjectFactory\\.register\\('noisesimplex3d'"]
+        }
+      ]
+    },
+    {
+      "id": "filter-padding-ceil",
+      "description": "Filter controllers expose integer-safe render-target padding.",
+      "since": "4.1.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class Controller \\{",
+        "memberPatterns": ["^\\s*getPaddingCeil\\(\\): Phaser\\.Geom\\.Rectangle;"]
+      },
+      "sources": [
+        {
+          "path": "src/filters/Controller.js",
+          "patterns": ["getPaddingCeil: function \\(\\)"]
+        }
+      ]
+    },
+    {
+      "id": "framebuffer-mipmap-config",
+      "description": "Framebuffer mipmap regeneration is an explicit render config decision.",
+      "since": "4.1.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class Config \\{",
+        "memberPatterns": ["^\\s*readonly mipmapRegeneration: boolean;"]
+      },
+      "sources": [
+        {
+          "path": "src/core/Config.js",
+          "patterns": ["this\\.mipmapRegeneration = GetValue\\(renderConfig, 'mipmapRegeneration', false, config\\);"]
+        }
+      ]
+    },
+    {
+      "id": "runtime-fps-limit",
+      "description": "TimeStep updates its FPS cap through setFPSLimit.",
+      "since": "4.2.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class TimeStep \\{",
+        "memberPatterns": ["^\\s*setFPSLimit\\(limit: number\\): this;"]
+      },
+      "sources": [
+        {
+          "path": "src/core/TimeStep.js",
+          "patterns": ["setFPSLimit: function \\(limit\\)"]
+        }
+      ]
+    },
+    {
+      "id": "mesh2d-factory-and-topology",
+      "description": "Mesh2D uses the lowercase factory and explicit topology strategies.",
+      "since": "4.2.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class GameObjectFactory \\{",
+        "memberPatterns": ["mesh2d\\(x: number, y: number, texture: string \\| Phaser\\.Textures\\.Texture, vertices: number\\[\\], indices: number\\[\\], flipV\\?: boolean\\): Phaser\\.GameObjects\\.Mesh2D;"]
+      },
+      "sources": [
+        {
+          "path": "src/gameobjects/mesh2d/Mesh2DFactory.js",
+          "patterns": ["GameObjectFactory\\.register\\('mesh2d'", "new Mesh2D\\(this\\.scene, x, y, texture, vertices, indices, flipV\\)"]
+        },
+        {
+          "path": "src/gameobjects/mesh2d/Mesh2D.js",
+          "patterns": [
+            "setUseOrderedIndices: function \\(value\\)",
+            "setRenderAsTriangles: function \\(value\\)",
+            "buildOrderedIndices: function \\(strategy, useOrderedIndices\\)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "custom-context-creator",
+      "description": "The typed CustomContext creator path is registered with camel case.",
+      "since": "4.2.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class GameObjectCreator \\{",
+        "memberPatterns": ["customContext\\(config: Phaser\\.Types\\.GameObjects\\.CustomContext\\.CustomContextConfig, addToScene\\?: boolean\\): Phaser\\.GameObjects\\.CustomContext;"]
+      },
+      "sources": [
+        {
+          "path": "src/gameobjects/customcontext/CustomContextCreator.js",
+          "patterns": ["GameObjectCreator\\.register\\('customContext'", "new CustomContext\\(this\\.scene, x, y, children, customContextCallback\\)"]
+        }
+      ]
+    },
+    {
+      "id": "stencil-factory",
+      "description": "Stencil is a WebGL Game Object factory with explicit options.",
+      "since": "4.2.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class GameObjectFactory \\{",
+        "memberPatterns": ["stencil\\(x\\?: number, y\\?: number, children\\?: Phaser\\.GameObjects\\.GameObject \\| Phaser\\.GameObjects\\.GameObject\\[\\], options\\?: Phaser\\.Types\\.GameObjects\\.Stencil\\.StencilOptions\\): Phaser\\.GameObjects\\.Stencil;"]
+      },
+      "sources": [
+        {
+          "path": "src/gameobjects/stencil/StencilFactory.js",
+          "patterns": ["GameObjectFactory\\.register\\('stencil'", "new Stencil\\(this\\.scene, x, y, children, options\\)"]
+        }
+      ]
+    },
+    {
+      "id": "stencil-reference-factory",
+      "description": "StencilReference reuses a target stencil through the lowercase factory.",
+      "since": "4.2.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class GameObjectFactory \\{",
+        "memberPatterns": ["stencilreference\\(targetStencil: Phaser\\.GameObjects\\.Stencil, options\\?: Phaser\\.Types\\.GameObjects\\.Stencil\\.StencilOptions\\): Phaser\\.GameObjects\\.StencilReference;"]
+      },
+      "sources": [
+        {
+          "path": "src/gameobjects/stencilreference/StencilReferenceFactory.js",
+          "patterns": ["GameObjectFactory\\.register\\('stencilreference'", "new StencilReference\\(this\\.scene, targetStencil, options\\)"]
+        }
+      ]
+    },
+    {
+      "id": "render-alpha-stencil-config",
+      "description": "Phaser 4.2 exposes renderer alpha and stencil strategies through Config.",
+      "since": "4.2.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class Config \\{",
+        "memberPatterns": [
+          "^\\s*readonly alphaStrategy: 'keep' \\| 'dither' \\| number;",
+          "^\\s*readonly stencilAlphaStrategy: 'keep' \\| 'dither' \\| number;"
+        ]
+      },
+      "sources": [
+        {
+          "path": "src/core/Config.js",
+          "patterns": [
+            "this\\.alphaStrategy = GetValue\\(renderConfig, 'alphaStrategy', 'keep', config\\);",
+            "this\\.stencilAlphaStrategy = GetValue\\(renderConfig, 'stencilAlphaStrategy', 'dither', config\\);"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "secondary-tint-component",
+      "description": "Tint components expose four-corner secondary tint in Phaser 4.2.",
+      "since": "4.2.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*interface Tint \\{",
+        "memberPatterns": ["setTint2\\(topLeft\\?: number, topRight\\?: number, bottomLeft\\?: number, bottomRight\\?: number\\): this;"]
+      },
+      "sources": [
+        {
+          "path": "src/gameobjects/components/Tint.js",
+          "patterns": ["setTint2: function \\(topLeft, topRight, bottomLeft, bottomRight\\)"]
+        }
+      ]
+    },
+    {
+      "id": "cone-light-api",
+      "description": "LightsManager creates cone lights and Light configures the cone in radians.",
+      "since": "4.2.0",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class LightsManager \\{",
+        "memberPatterns": ["addConeLight\\(x\\?: number, y\\?: number, radius\\?: number, rgb\\?: number, intensity\\?: number, rotation\\?: number, innerAngle\\?: number, outerAngle\\?: number, z\\?: number\\): Phaser\\.GameObjects\\.Light;"]
+      },
+      "sources": [
+        {
+          "path": "src/gameobjects/lights/LightsManager.js",
+          "patterns": ["addConeLight: function \\(x, y, radius, rgb, intensity, rotation, innerAngle, outerAngle, z\\)"]
+        },
+        {
+          "path": "src/gameobjects/lights/Light.js",
+          "patterns": [
+            "setCone: function \\(rotation, innerAngle, outerAngle\\)",
+            "setConeRotation: function \\(rotation\\)",
+            "setConeAngles: function \\(innerAngle, outerAngle\\)",
+            "disableCone: function \\(\\)"
+          ]
+        }
+      ]
+    }
+  ],
+  "knownDivergences": [
+    {
+      "id": "render-texture-return-type",
+      "description": "RenderTexture#render is declared void in 4.2.1 but its implementation returns this.",
+      "since": "4.0.0",
+      "until": "4.2.1",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class RenderTexture extends Phaser\\.GameObjects\\.Image",
+        "memberPatterns": ["^\\s*render\\(\\): void;"]
+      },
+      "sources": [
+        {
+          "path": "src/gameobjects/rendertexture/RenderTexture.js",
+          "patterns": ["render: function \\(\\)", "this\\.texture\\.render\\(\\);[\\s\\S]*return this;"]
+        }
+      ]
+    },
+    {
+      "id": "custom-context-factory-casing",
+      "description": "Phaser 4.2.1 declares customContext but registers the runtime add factory as customcontext.",
+      "since": "4.2.0",
+      "until": "4.2.1",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class GameObjectFactory \\{",
+        "memberPatterns": ["customContext\\(x\\?: number, y\\?: number, children\\?: Phaser\\.GameObjects\\.GameObject\\[\\], customContextCallback\\?: Phaser\\.Types\\.GameObjects\\.CustomContext\\.CustomContextCallback\\): Phaser\\.GameObjects\\.CustomContext;"]
+      },
+      "sources": [
+        {
+          "path": "src/gameobjects/customcontext/CustomContextFactory.js",
+          "patterns": ["GameObjectFactory\\.register\\('customcontext'"]
+        }
+      ]
+    },
+    {
+      "id": "mesh2d-tint-types-omission",
+      "description": "Mesh2D runtime tint methods exist in 4.2.1 but are absent from its generated class declaration.",
+      "since": "4.2.0",
+      "until": "4.2.1",
+      "declaration": {
+        "path": "types/phaser.d.ts",
+        "scopePattern": "^\\s*class Mesh2D extends Phaser\\.GameObjects\\.GameObject",
+        "absentPatterns": ["setTint2\\(", "setTintMode\\("]
+      },
+      "sources": [
+        {
+          "path": "src/gameobjects/mesh2d/Mesh2D.js",
+          "patterns": ["setTint2: function \\(color\\)", "setTintMode: function \\(mode\\)"]
+        }
+      ]
+    }
+  ]
+}
