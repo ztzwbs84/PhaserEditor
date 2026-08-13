@@ -12,6 +12,7 @@ const locationPattern = /((?:[A-Za-z]:)?[^\s:()]+\.(?:ts|tsx|js|jsx|json|md)):(\
 
 export class RunnerService {
   private child: ChildProcessWithoutNullStreams | null = null
+  private startInProgress = false
   private stopPromise: Promise<RunSession> | null = null
   private config: RunConfiguration | undefined
   private session: RunSession = { id: randomUUID(), status: 'idle' }
@@ -31,21 +32,31 @@ export class RunnerService {
   }
 
   async start(config?: RunConfiguration): Promise<RunSession> {
-    if (this.child) throw new AppError('CONFLICT', 'The project is already running.')
+    if (this.child || this.startInProgress) throw new AppError('CONFLICT', 'The project is already starting or running.')
     const activeProject = this.projectService.activeProject
     if (!activeProject) throw new AppError('INVALID_INPUT', 'Open a project before starting it.')
-    const project = await inspectProject(activeProject.path)
-    if (!project.valid) throw new AppError('INVALID_INPUT', project.issue ?? 'The active project is no longer valid.')
-    this.config = config
-    const resolved = config ?? resolveDefaultRunConfiguration(project)
-    const executable = windowsCommand(resolved.executable)
-    const command = resolveSpawnCommand(executable, resolved.args)
-    const cwd = resolved.cwd ?? project.path
-    const configuredUrl = inferRunUrl(project, resolved)
-    this.setState({ id: randomUUID(), status: 'starting', startedAt: new Date().toISOString() })
-    this.log('info', `Starting ${resolved.executable} ${resolved.args.join(' ')} in ${cwd}`)
+    const sessionId = randomUUID()
+    this.startInProgress = true
+    this.setState({ id: sessionId, status: 'starting', startedAt: new Date().toISOString() })
 
     try {
+      const project = await inspectProject(activeProject.path)
+      if (!project.valid) throw new AppError('INVALID_INPUT', project.issue ?? 'The active project is no longer valid.')
+      this.config = config
+      const resolved = config ?? resolveDefaultRunConfiguration(project)
+      const executable = windowsCommand(resolved.executable)
+      const command = resolveSpawnCommand(executable, resolved.args)
+      const cwd = resolved.cwd ?? project.path
+      const configuredUrl = inferRunUrl(project, resolved)
+      if (await this.projectService.ensureDependenciesInstalled(project.path, (packageManager) => {
+        const message = `Project dependencies are missing. Running ${packageManager} install...`
+        this.setState({ ...this.session, message })
+        this.log('info', message)
+      })) {
+        this.log('info', `Installed project dependencies with ${project.packageManager}.`)
+      }
+      if (this.session.id !== sessionId || this.session.status !== 'starting') return this.getState()
+      this.log('info', `Starting ${resolved.executable} ${resolved.args.join(' ')} in ${cwd}`)
       const child = spawn(command.executable, command.args, {
         cwd,
         env: { ...process.env, ...resolved.env, FORCE_COLOR: '1' },
@@ -75,11 +86,14 @@ export class RunnerService {
       })
       return this.getState()
     } catch (error) {
+      if (this.session.id !== sessionId || this.session.status !== 'starting') return this.getState()
       const message = error instanceof Error ? error.message : String(error)
       this.log('error', message)
       this.child = null
       this.setState({ ...this.session, status: 'error', message })
       throw error
+    } finally {
+      this.startInProgress = false
     }
   }
 

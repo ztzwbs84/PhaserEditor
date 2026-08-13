@@ -106,7 +106,6 @@ function CreateProjectDialog({ onClose, onCreate }: {
   const [name, setName] = useState('My Phaser Game')
   const [parent, setParent] = useState('')
   const [target, setTarget] = useState('')
-  const [install, setInstall] = useState(true)
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
@@ -124,13 +123,12 @@ function CreateProjectDialog({ onClose, onCreate }: {
             if (result.ok) setParent(result.value)
           }}><FolderOpen size={16} /></button></div></label>
           <label><span>Target directory</span><input value={target} onChange={(event) => setTarget(event.target.value)} /></label>
-          <label className="check-row"><input type="checkbox" checked={install} onChange={(event) => setInstall(event.target.checked)} /><span>Install npm dependencies</span></label>
         </div>
         <div className="dialog-footer">
           <button className="button" onClick={onClose} disabled={busy}>Cancel</button>
           <button className="button primary" disabled={busy || !name.trim() || !target.trim()} onClick={async () => {
             setBusy(true)
-            await onCreate({ name, targetDirectory: target, installDependencies: install })
+            await onCreate({ name, targetDirectory: target, installDependencies: true })
             setBusy(false)
           }}>{busy ? 'Creating...' : 'Create project'}</button>
         </div>

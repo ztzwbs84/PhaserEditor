@@ -97,7 +97,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   async createProject(request) {
     if (!await prepareProjectTransition(get)) return false
-    get().notify('info', request.installDependencies ? 'Creating project and installing dependencies...' : 'Creating project...')
+    get().notify('info', 'Creating project and installing dependencies...')
     const result = await window.editorApi.project.create(request)
     if (!result.ok) {
       get().notify('error', result.error.message)

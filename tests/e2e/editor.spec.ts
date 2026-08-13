@@ -123,7 +123,6 @@ test('creates, edits, runs and previews a Phaser project', async () => {
     await page.getByLabel('Project name').fill(projectName)
     await page.getByLabel('Parent folder').fill(parentDirectory)
     await page.getByLabel('Target directory').fill(targetDirectory)
-    await page.getByLabel('Install npm dependencies').uncheck()
     await page.getByRole('button', { name: 'Create project' }).click()
 
     await expect(page.getByRole('tab', { name: 'Scene' })).toBeVisible({ timeout: 15_000 })
@@ -273,7 +272,6 @@ test('saves, closes, and reopens a visual scene without losing its rendered mode
     await page.getByLabel('Project name').fill('Scene Round Trip')
     await page.getByLabel('Parent folder').fill(parentDirectory)
     await page.getByLabel('Target directory').fill(targetDirectory)
-    await page.getByLabel('Install npm dependencies').uncheck()
     await page.getByRole('button', { name: 'Create project' }).click()
 
     await writeSceneFixture(targetDirectory)

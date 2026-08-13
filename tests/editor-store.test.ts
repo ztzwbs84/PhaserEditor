@@ -138,7 +138,7 @@ describe('editor lifecycle store', () => {
     expect(useEditorStore.getState().project).toBeNull()
   })
 
-  it('reports project creation progress without claiming disabled installation work', async () => {
+  it('reports automatic dependency installation while creating a project', async () => {
     await useEditorStore.getState().closeProject()
     const create = vi.spyOn(window.editorApi.project, 'create')
 
@@ -149,8 +149,7 @@ describe('editor lifecycle store', () => {
     })
 
     expect(create).toHaveBeenCalledOnce()
-    expect(useEditorStore.getState().notices.some(({ message }) => message === 'Creating project...')).toBe(true)
-    expect(useEditorStore.getState().notices.some(({ message }) => message.includes('installing dependencies'))).toBe(false)
+    expect(useEditorStore.getState().notices.some(({ message }) => message.includes('installing dependencies'))).toBe(true)
   })
 
   it('creates, opens, edits, conflict-checks, and overwrites a visual scene', async () => {

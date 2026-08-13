@@ -15,12 +15,16 @@ interface PackageJson {
   devDependencies?: Record<string, string>
 }
 
+type PackageManager = ProjectDescriptor['packageManager']
+type DependencyInstaller = (cwd: string, packageManager: PackageManager) => Promise<void>
+
 export class ProjectService {
   private active: ProjectDescriptor | null = null
 
   constructor(
     private readonly store: ConfigStore,
-    private readonly templateRoot: string
+    private readonly templateRoot: string,
+    private readonly installDependencies: DependencyInstaller = runInstall
   ) {}
 
   get activeProject(): ProjectDescriptor | null {
@@ -68,17 +72,26 @@ export class ProjectService {
     }
 
     let installIssue: string | undefined
-    if (request.installDependencies) {
-      try {
-        await runInstall(target)
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
-        await fs.writeFile(path.join(target, '.phaser-editor-install-error.log'), message, 'utf8')
-        installIssue = 'The project was created, but dependency installation failed. Run npm install from the project directory to repair it.'
-      }
+    try {
+      await this.installDependencies(target, 'npm')
+      await clearInstallError(target)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      await fs.writeFile(path.join(target, '.phaser-editor-install-error.log'), message, 'utf8')
+      installIssue = 'The project was created, but dependency installation failed. Run npm install from the project directory to repair it.'
     }
     const descriptor = await this.open(target)
     return installIssue ? { ...descriptor, issue: installIssue } : descriptor
+  }
+
+  async ensureDependenciesInstalled(projectPath: string, onInstall?: (packageManager: PackageManager) => void): Promise<boolean> {
+    const root = path.resolve(projectPath)
+    if (!await needsDependencyInstall(root)) return false
+    const packageManager = detectPackageManager(root)
+    onInstall?.(packageManager)
+    await this.installDependencies(root, packageManager)
+    await clearInstallError(root)
+    return true
   }
 }
 
@@ -181,17 +194,51 @@ async function copyTemplate(source: string, destination: string, projectName: st
   await fs.writeFile(readmePath, readme.replaceAll('__PROJECT_NAME__', projectName), 'utf8')
 }
 
-function runInstall(cwd: string): Promise<void> {
+export async function needsDependencyInstall(root: string): Promise<boolean> {
+  let packageJson: PackageJson
+  try {
+    packageJson = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8')) as PackageJson
+  } catch {
+    return true
+  }
+
+  const dependencies = Object.keys({ ...packageJson.devDependencies, ...packageJson.dependencies })
+  if (dependencies.length === 0) return false
+
+  if (await pathExists(path.join(root, '.pnp.cjs')) || await pathExists(path.join(root, '.pnp.js'))) {
+    return false
+  }
+  if (!await pathExists(path.join(root, 'node_modules'))) return true
+
+  const installed = await Promise.all(dependencies.map((name) => pathExists(path.join(root, 'node_modules', ...name.split('/')))))
+  return installed.some((exists) => !exists)
+}
+
+function runInstall(cwd: string, packageManager: PackageManager): Promise<void> {
   return new Promise((resolve, reject) => {
-    const executable = process.platform === 'win32' ? 'npm.cmd' : 'npm'
-    const command = resolveSpawnCommand(executable, ['install', '--no-audit', '--no-fund'])
+    const executable = process.platform === 'win32' && packageManager !== 'bun' ? `${packageManager}.cmd` : packageManager
+    const args = packageManager === 'npm' ? ['install', '--no-audit', '--no-fund'] : ['install']
+    const command = resolveSpawnCommand(executable, args)
     const child = spawn(command.executable, command.args, { cwd, windowsHide: true })
     let stderr = ''
     child.stderr.on('data', (chunk: Buffer) => { stderr += chunk.toString() })
     child.once('error', reject)
     child.once('exit', (code) => {
       if (code === 0) resolve()
-      else reject(new AppError('PROCESS_FAILED', 'The project was created, but dependency installation failed.', stderr))
+      else reject(new AppError('PROCESS_FAILED', `Dependency installation failed with ${packageManager}.`, stderr))
     })
   })
+}
+
+async function pathExists(candidate: string): Promise<boolean> {
+  try {
+    await fs.access(candidate)
+    return true
+  } catch {
+    return false
+  }
+}
+
+async function clearInstallError(root: string): Promise<void> {
+  await fs.rm(path.join(root, '.phaser-editor-install-error.log'), { force: true }).catch(() => undefined)
 }
