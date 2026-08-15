@@ -1,0 +1,4 @@
+interface:
+  display_name: "Spine Export Asset Extractor"
+  short_description: "Safely extract paired Spine export assets"
+  default_prompt: "Use $extract-spine-export-assets to preflight and extract these Unity-exported Spine resources without overwriting unrelated files."

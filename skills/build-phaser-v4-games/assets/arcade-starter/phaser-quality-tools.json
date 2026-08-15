@@ -1,0 +1,430 @@
+{
+  "schemaVersion": 1,
+  "version": 23,
+  "managedFiles": {
+    "scripts/browser-e2e.mjs": "c66fbbeefb77f4648734d3ecf4b768747ada65733e6da8a3cd26e4cfbe79effa",
+    "scripts/browser-e2e.test.mjs": "eda3999501f1e2bbba8c74f12d7bb4e319a3cdce50417e6fb79bb67602cafabe",
+    "scripts/check-bundle-budget.mjs": "bb851a90f453616b881d88b74277060b7d2afe7cd856c46eefa2faae5aa21047",
+    "scripts/check-bundle-budget.test.mjs": "b73d84d3138e8782afbd46a2e2fd00ca747969005ed104ae66169cfe8efa25c4",
+    "scripts/release-fingerprint.mjs": "1a53a743a7f55edfd264d6545af1239d5cbd316ef25fa7bba4e4c673a5561da1",
+    "scripts/release-fingerprint.test.mjs": "7eeb37a6e86ec5a33d03263be096cdc8f43ff05e6963ccca9b7ff82bd3641ede",
+    "scripts/quality-input-driver.mjs": "47e7fc95b9798c17d0f92a5ed03a35f637541feb210f1bcc8ffedac5a6c6e676",
+    "scripts/quality-input-driver.test.mjs": "4db677f53a851e91fc6e610372ca873e4cd49639ba10a042e385d9fd51146c80",
+    "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+    "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce",
+    "scripts/persistence-proof.mjs": "a45f10cc81abba1f6a9ad6bb511e52d90fe907bccfed64302151925313e74c78",
+    "scripts/persistence-proof.test.mjs": "2b0ad125e8b069ea89a8737904f4c91e1447d91b168f4b77c4ee7978e304002b",
+    "scripts/audit-phaser-project.mjs": "1828ad4da31e2dcc6a06c63002e9ee19db4bb310479968cb79e7077fd8684eb7",
+    "scripts/check-phaser-api.mjs": "5ae0343802ccf05c653971f9720bc0105167e60bb338b25841dc0b35dcdc99b1",
+    "scripts/api-anchors.json": "4e4cbceac7534b0796552f2b8b5f3596db1ca5932e1a567a6f87c8767bb5adf9",
+    "scripts/check-release.mjs": "54ef86247127e47744fe1fec95da46531f0b1404f876999a8185a6c29dc79b9f",
+    "scripts/check-release.test.mjs": "bf561b4f1605fd513021da84a2cdfd5eb9e11b09ee4ab4f8403e3edb028d345c"
+  },
+  "knownVersions": [
+    {
+      "version": 22,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "2b18441ea21625a0f5c31f99319debcc498ff7e1ddfa932252df9ec20d424843",
+        "scripts/browser-e2e.test.mjs": "dc5877c2480f13097e3a04c80dc5db23ea34384f72195d834caafe8b50a781bd",
+        "scripts/check-bundle-budget.mjs": "bb851a90f453616b881d88b74277060b7d2afe7cd856c46eefa2faae5aa21047",
+        "scripts/check-bundle-budget.test.mjs": "b73d84d3138e8782afbd46a2e2fd00ca747969005ed104ae66169cfe8efa25c4",
+        "scripts/release-fingerprint.mjs": "1a53a743a7f55edfd264d6545af1239d5cbd316ef25fa7bba4e4c673a5561da1",
+        "scripts/release-fingerprint.test.mjs": "7eeb37a6e86ec5a33d03263be096cdc8f43ff05e6963ccca9b7ff82bd3641ede",
+        "scripts/quality-input-driver.mjs": "47e7fc95b9798c17d0f92a5ed03a35f637541feb210f1bcc8ffedac5a6c6e676",
+        "scripts/quality-input-driver.test.mjs": "4db677f53a851e91fc6e610372ca873e4cd49639ba10a042e385d9fd51146c80",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce",
+        "scripts/persistence-proof.mjs": "a45f10cc81abba1f6a9ad6bb511e52d90fe907bccfed64302151925313e74c78",
+        "scripts/persistence-proof.test.mjs": "2b0ad125e8b069ea89a8737904f4c91e1447d91b168f4b77c4ee7978e304002b",
+        "scripts/audit-phaser-project.mjs": "1828ad4da31e2dcc6a06c63002e9ee19db4bb310479968cb79e7077fd8684eb7",
+        "scripts/check-phaser-api.mjs": "5ae0343802ccf05c653971f9720bc0105167e60bb338b25841dc0b35dcdc99b1",
+        "scripts/api-anchors.json": "4e4cbceac7534b0796552f2b8b5f3596db1ca5932e1a567a6f87c8767bb5adf9",
+        "scripts/check-release.mjs": "f4525fd34853f76d58fd078a5be26778b698dc27233ec50ecb11dbaabd79d6ef",
+        "scripts/check-release.test.mjs": "6634964e99ec10f72fbe2933823f34d06440fc41a193540f56576e2de34eeb03"
+      }
+    },
+    {
+      "version": 21,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "daa51e36173a7a74e12ee1cd73d2a10a3784036ac5e99f5003115e3e0652326b",
+        "scripts/browser-e2e.test.mjs": "e641f26e0d8cecf11d9272817656ea735178aba4a9c865c6f63a875200ab4d1a",
+        "scripts/check-bundle-budget.mjs": "bb851a90f453616b881d88b74277060b7d2afe7cd856c46eefa2faae5aa21047",
+        "scripts/check-bundle-budget.test.mjs": "b73d84d3138e8782afbd46a2e2fd00ca747969005ed104ae66169cfe8efa25c4",
+        "scripts/release-fingerprint.mjs": "1a53a743a7f55edfd264d6545af1239d5cbd316ef25fa7bba4e4c673a5561da1",
+        "scripts/release-fingerprint.test.mjs": "7eeb37a6e86ec5a33d03263be096cdc8f43ff05e6963ccca9b7ff82bd3641ede",
+        "scripts/quality-input-driver.mjs": "47e7fc95b9798c17d0f92a5ed03a35f637541feb210f1bcc8ffedac5a6c6e676",
+        "scripts/quality-input-driver.test.mjs": "4db677f53a851e91fc6e610372ca873e4cd49639ba10a042e385d9fd51146c80",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce",
+        "scripts/persistence-proof.mjs": "a45f10cc81abba1f6a9ad6bb511e52d90fe907bccfed64302151925313e74c78",
+        "scripts/persistence-proof.test.mjs": "2b0ad125e8b069ea89a8737904f4c91e1447d91b168f4b77c4ee7978e304002b",
+        "scripts/audit-phaser-project.mjs": "1828ad4da31e2dcc6a06c63002e9ee19db4bb310479968cb79e7077fd8684eb7",
+        "scripts/check-phaser-api.mjs": "5ae0343802ccf05c653971f9720bc0105167e60bb338b25841dc0b35dcdc99b1",
+        "scripts/api-anchors.json": "4e4cbceac7534b0796552f2b8b5f3596db1ca5932e1a567a6f87c8767bb5adf9",
+        "scripts/check-release.mjs": "f4525fd34853f76d58fd078a5be26778b698dc27233ec50ecb11dbaabd79d6ef",
+        "scripts/check-release.test.mjs": "6634964e99ec10f72fbe2933823f34d06440fc41a193540f56576e2de34eeb03"
+      }
+    },
+    {
+      "version": 20,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "e8411ff68967205411ba83a150257ecac7fb42da0ec6717b35484c4ad427d10e",
+        "scripts/browser-e2e.test.mjs": "61a17ff22584231a72617c63463a3381ae58685a9186ec504f8961e4a60c6859",
+        "scripts/check-bundle-budget.mjs": "bb851a90f453616b881d88b74277060b7d2afe7cd856c46eefa2faae5aa21047",
+        "scripts/check-bundle-budget.test.mjs": "b73d84d3138e8782afbd46a2e2fd00ca747969005ed104ae66169cfe8efa25c4",
+        "scripts/release-fingerprint.mjs": "1a53a743a7f55edfd264d6545af1239d5cbd316ef25fa7bba4e4c673a5561da1",
+        "scripts/release-fingerprint.test.mjs": "7eeb37a6e86ec5a33d03263be096cdc8f43ff05e6963ccca9b7ff82bd3641ede",
+        "scripts/quality-input-driver.mjs": "47e7fc95b9798c17d0f92a5ed03a35f637541feb210f1bcc8ffedac5a6c6e676",
+        "scripts/quality-input-driver.test.mjs": "4db677f53a851e91fc6e610372ca873e4cd49639ba10a042e385d9fd51146c80",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce",
+        "scripts/persistence-proof.mjs": "a45f10cc81abba1f6a9ad6bb511e52d90fe907bccfed64302151925313e74c78",
+        "scripts/persistence-proof.test.mjs": "2b0ad125e8b069ea89a8737904f4c91e1447d91b168f4b77c4ee7978e304002b",
+        "scripts/audit-phaser-project.mjs": "1828ad4da31e2dcc6a06c63002e9ee19db4bb310479968cb79e7077fd8684eb7",
+        "scripts/check-phaser-api.mjs": "5ae0343802ccf05c653971f9720bc0105167e60bb338b25841dc0b35dcdc99b1",
+        "scripts/api-anchors.json": "4e4cbceac7534b0796552f2b8b5f3596db1ca5932e1a567a6f87c8767bb5adf9",
+        "scripts/check-release.mjs": "f4525fd34853f76d58fd078a5be26778b698dc27233ec50ecb11dbaabd79d6ef",
+        "scripts/check-release.test.mjs": "6634964e99ec10f72fbe2933823f34d06440fc41a193540f56576e2de34eeb03"
+      }
+    },
+    {
+      "version": 19,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "c3e2de1824e2a33643f4e184c2dd64f98deb122296fbc3796f72bb6ffa373518",
+        "scripts/browser-e2e.test.mjs": "471e4f188b63f3f83d32ddf9a0441550ca7625ec53a8434d3686a4e1a9b6f452",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "47e7fc95b9798c17d0f92a5ed03a35f637541feb210f1bcc8ffedac5a6c6e676",
+        "scripts/quality-input-driver.test.mjs": "4db677f53a851e91fc6e610372ca873e4cd49639ba10a042e385d9fd51146c80",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce",
+        "scripts/persistence-proof.mjs": "a45f10cc81abba1f6a9ad6bb511e52d90fe907bccfed64302151925313e74c78",
+        "scripts/persistence-proof.test.mjs": "2b0ad125e8b069ea89a8737904f4c91e1447d91b168f4b77c4ee7978e304002b",
+        "scripts/audit-phaser-project.mjs": "1828ad4da31e2dcc6a06c63002e9ee19db4bb310479968cb79e7077fd8684eb7",
+        "scripts/check-phaser-api.mjs": "5ae0343802ccf05c653971f9720bc0105167e60bb338b25841dc0b35dcdc99b1",
+        "scripts/api-anchors.json": "4e4cbceac7534b0796552f2b8b5f3596db1ca5932e1a567a6f87c8767bb5adf9",
+        "scripts/check-release.mjs": "f4525fd34853f76d58fd078a5be26778b698dc27233ec50ecb11dbaabd79d6ef",
+        "scripts/check-release.test.mjs": "6634964e99ec10f72fbe2933823f34d06440fc41a193540f56576e2de34eeb03"
+      }
+    },
+    {
+      "version": 18,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "12333a8a285cb07fe50d21c58dcd7dd495235eef51abb1d65e181dd35284602d",
+        "scripts/browser-e2e.test.mjs": "8eee2288111a4d4ed27e8f10e891e02024b57720084ab67a869568c0127e2dca",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "47e7fc95b9798c17d0f92a5ed03a35f637541feb210f1bcc8ffedac5a6c6e676",
+        "scripts/quality-input-driver.test.mjs": "4db677f53a851e91fc6e610372ca873e4cd49639ba10a042e385d9fd51146c80",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce",
+        "scripts/persistence-proof.mjs": "a45f10cc81abba1f6a9ad6bb511e52d90fe907bccfed64302151925313e74c78",
+        "scripts/persistence-proof.test.mjs": "2b0ad125e8b069ea89a8737904f4c91e1447d91b168f4b77c4ee7978e304002b",
+        "scripts/audit-phaser-project.mjs": "1828ad4da31e2dcc6a06c63002e9ee19db4bb310479968cb79e7077fd8684eb7",
+        "scripts/check-phaser-api.mjs": "5ae0343802ccf05c653971f9720bc0105167e60bb338b25841dc0b35dcdc99b1",
+        "scripts/api-anchors.json": "4e4cbceac7534b0796552f2b8b5f3596db1ca5932e1a567a6f87c8767bb5adf9",
+        "scripts/check-release.mjs": "f4525fd34853f76d58fd078a5be26778b698dc27233ec50ecb11dbaabd79d6ef",
+        "scripts/check-release.test.mjs": "6634964e99ec10f72fbe2933823f34d06440fc41a193540f56576e2de34eeb03"
+      }
+    },
+    {
+      "version": 17,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "7abe517bc86d4b6ebde46eca5a4e172263717cc1fe77e8d2e1995db9c3aec02a",
+        "scripts/browser-e2e.test.mjs": "6df566b15c55db4d95abd70fc3e276734fc0f79f983b088168ffdbe2da249e88",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "47e7fc95b9798c17d0f92a5ed03a35f637541feb210f1bcc8ffedac5a6c6e676",
+        "scripts/quality-input-driver.test.mjs": "4db677f53a851e91fc6e610372ca873e4cd49639ba10a042e385d9fd51146c80",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce",
+        "scripts/persistence-proof.mjs": "a45f10cc81abba1f6a9ad6bb511e52d90fe907bccfed64302151925313e74c78",
+        "scripts/persistence-proof.test.mjs": "2b0ad125e8b069ea89a8737904f4c91e1447d91b168f4b77c4ee7978e304002b",
+        "scripts/audit-phaser-project.mjs": "1828ad4da31e2dcc6a06c63002e9ee19db4bb310479968cb79e7077fd8684eb7",
+        "scripts/check-phaser-api.mjs": "5ae0343802ccf05c653971f9720bc0105167e60bb338b25841dc0b35dcdc99b1",
+        "scripts/api-anchors.json": "4e4cbceac7534b0796552f2b8b5f3596db1ca5932e1a567a6f87c8767bb5adf9",
+        "scripts/check-release.mjs": "f4525fd34853f76d58fd078a5be26778b698dc27233ec50ecb11dbaabd79d6ef",
+        "scripts/check-release.test.mjs": "6634964e99ec10f72fbe2933823f34d06440fc41a193540f56576e2de34eeb03"
+      }
+    },
+    {
+      "version": 16,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "d20fdb35aa453bf255d49cf9f6f529136968ced6d4946b81e1835fb7e09f0959",
+        "scripts/browser-e2e.test.mjs": "3f9e61605ac437b8495c68a7ac5b8d7410f8a7b718a903cd100f60a8fecf605c",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "47e7fc95b9798c17d0f92a5ed03a35f637541feb210f1bcc8ffedac5a6c6e676",
+        "scripts/quality-input-driver.test.mjs": "4db677f53a851e91fc6e610372ca873e4cd49639ba10a042e385d9fd51146c80",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce",
+        "scripts/persistence-proof.mjs": "a45f10cc81abba1f6a9ad6bb511e52d90fe907bccfed64302151925313e74c78",
+        "scripts/persistence-proof.test.mjs": "2b0ad125e8b069ea89a8737904f4c91e1447d91b168f4b77c4ee7978e304002b",
+        "scripts/audit-phaser-project.mjs": "1828ad4da31e2dcc6a06c63002e9ee19db4bb310479968cb79e7077fd8684eb7",
+        "scripts/check-phaser-api.mjs": "5ae0343802ccf05c653971f9720bc0105167e60bb338b25841dc0b35dcdc99b1",
+        "scripts/api-anchors.json": "4e4cbceac7534b0796552f2b8b5f3596db1ca5932e1a567a6f87c8767bb5adf9",
+        "scripts/check-release.mjs": "f4525fd34853f76d58fd078a5be26778b698dc27233ec50ecb11dbaabd79d6ef",
+        "scripts/check-release.test.mjs": "6634964e99ec10f72fbe2933823f34d06440fc41a193540f56576e2de34eeb03"
+      }
+    },
+    {
+      "version": 15,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "92927c67d777181a0ec19a78fd56214c8397157566ee819de514ef9d0b064d7f",
+        "scripts/browser-e2e.test.mjs": "834982da3ca1696101626fa70668162fae02a62866c3ca8cc2b90cdf93bb71a3",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "47e7fc95b9798c17d0f92a5ed03a35f637541feb210f1bcc8ffedac5a6c6e676",
+        "scripts/quality-input-driver.test.mjs": "4db677f53a851e91fc6e610372ca873e4cd49639ba10a042e385d9fd51146c80",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce",
+        "scripts/persistence-proof.mjs": "a45f10cc81abba1f6a9ad6bb511e52d90fe907bccfed64302151925313e74c78",
+        "scripts/persistence-proof.test.mjs": "2b0ad125e8b069ea89a8737904f4c91e1447d91b168f4b77c4ee7978e304002b",
+        "scripts/audit-phaser-project.mjs": "1828ad4da31e2dcc6a06c63002e9ee19db4bb310479968cb79e7077fd8684eb7",
+        "scripts/check-phaser-api.mjs": "5ae0343802ccf05c653971f9720bc0105167e60bb338b25841dc0b35dcdc99b1",
+        "scripts/api-anchors.json": "4e4cbceac7534b0796552f2b8b5f3596db1ca5932e1a567a6f87c8767bb5adf9",
+        "scripts/check-release.mjs": "f4525fd34853f76d58fd078a5be26778b698dc27233ec50ecb11dbaabd79d6ef",
+        "scripts/check-release.test.mjs": "6634964e99ec10f72fbe2933823f34d06440fc41a193540f56576e2de34eeb03"
+      }
+    },
+    {
+      "version": 14,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "e51eb7de312365f69917b24c93b7909931797a0f5a775431bce66cb525050435",
+        "scripts/browser-e2e.test.mjs": "ec23f023a1759e5cbf24a460431ff87acb5547782954387c3c7024198f672b0f",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "34eadf09b60ea9a09c9270a671e356a401c38c1ae6cf23270b31510c475c6d08",
+        "scripts/quality-input-driver.test.mjs": "f15c8a7b81eb35077ed05c7312ad90bb6a7d4bba0ac7c17b832313221391bc1b",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce",
+        "scripts/persistence-proof.mjs": "a45f10cc81abba1f6a9ad6bb511e52d90fe907bccfed64302151925313e74c78",
+        "scripts/persistence-proof.test.mjs": "2b0ad125e8b069ea89a8737904f4c91e1447d91b168f4b77c4ee7978e304002b",
+        "scripts/audit-phaser-project.mjs": "1828ad4da31e2dcc6a06c63002e9ee19db4bb310479968cb79e7077fd8684eb7",
+        "scripts/check-phaser-api.mjs": "5ae0343802ccf05c653971f9720bc0105167e60bb338b25841dc0b35dcdc99b1",
+        "scripts/api-anchors.json": "4e4cbceac7534b0796552f2b8b5f3596db1ca5932e1a567a6f87c8767bb5adf9",
+        "scripts/check-release.mjs": "f4525fd34853f76d58fd078a5be26778b698dc27233ec50ecb11dbaabd79d6ef",
+        "scripts/check-release.test.mjs": "6634964e99ec10f72fbe2933823f34d06440fc41a193540f56576e2de34eeb03"
+      }
+    },
+    {
+      "version": 13,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "6ba5a800acdddcaf13728dd66748803a4f4c8721cbafc13914260060d0d4d7f6",
+        "scripts/browser-e2e.test.mjs": "39b63eae0cfc37e97b8aa46de580bb5ff3348f345efe2361c4e3c7a06f07fd32",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "34eadf09b60ea9a09c9270a671e356a401c38c1ae6cf23270b31510c475c6d08",
+        "scripts/quality-input-driver.test.mjs": "f15c8a7b81eb35077ed05c7312ad90bb6a7d4bba0ac7c17b832313221391bc1b",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce",
+        "scripts/persistence-proof.mjs": "a45f10cc81abba1f6a9ad6bb511e52d90fe907bccfed64302151925313e74c78",
+        "scripts/persistence-proof.test.mjs": "2b0ad125e8b069ea89a8737904f4c91e1447d91b168f4b77c4ee7978e304002b",
+        "scripts/audit-phaser-project.mjs": "1828ad4da31e2dcc6a06c63002e9ee19db4bb310479968cb79e7077fd8684eb7",
+        "scripts/check-phaser-api.mjs": "5ae0343802ccf05c653971f9720bc0105167e60bb338b25841dc0b35dcdc99b1",
+        "scripts/api-anchors.json": "4e4cbceac7534b0796552f2b8b5f3596db1ca5932e1a567a6f87c8767bb5adf9",
+        "scripts/check-release.mjs": "f4525fd34853f76d58fd078a5be26778b698dc27233ec50ecb11dbaabd79d6ef",
+        "scripts/check-release.test.mjs": "6634964e99ec10f72fbe2933823f34d06440fc41a193540f56576e2de34eeb03"
+      }
+    },
+    {
+      "version": 12,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "c34410e5e2f253e95994ba620fb7781e00f1ba9bc240472a83002dac4c2042c8",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "34eadf09b60ea9a09c9270a671e356a401c38c1ae6cf23270b31510c475c6d08",
+        "scripts/quality-input-driver.test.mjs": "f15c8a7b81eb35077ed05c7312ad90bb6a7d4bba0ac7c17b832313221391bc1b",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce",
+        "scripts/persistence-proof.mjs": "a45f10cc81abba1f6a9ad6bb511e52d90fe907bccfed64302151925313e74c78",
+        "scripts/persistence-proof.test.mjs": "2b0ad125e8b069ea89a8737904f4c91e1447d91b168f4b77c4ee7978e304002b",
+        "scripts/audit-phaser-project.mjs": "1828ad4da31e2dcc6a06c63002e9ee19db4bb310479968cb79e7077fd8684eb7",
+        "scripts/check-phaser-api.mjs": "5ae0343802ccf05c653971f9720bc0105167e60bb338b25841dc0b35dcdc99b1",
+        "scripts/api-anchors.json": "4e4cbceac7534b0796552f2b8b5f3596db1ca5932e1a567a6f87c8767bb5adf9",
+        "scripts/check-release.mjs": "f4525fd34853f76d58fd078a5be26778b698dc27233ec50ecb11dbaabd79d6ef",
+        "scripts/check-release.test.mjs": "6634964e99ec10f72fbe2933823f34d06440fc41a193540f56576e2de34eeb03"
+      }
+    },
+    {
+      "version": 11,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "c34410e5e2f253e95994ba620fb7781e00f1ba9bc240472a83002dac4c2042c8",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "34eadf09b60ea9a09c9270a671e356a401c38c1ae6cf23270b31510c475c6d08",
+        "scripts/quality-input-driver.test.mjs": "f15c8a7b81eb35077ed05c7312ad90bb6a7d4bba0ac7c17b832313221391bc1b",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce",
+        "scripts/persistence-proof.mjs": "a45f10cc81abba1f6a9ad6bb511e52d90fe907bccfed64302151925313e74c78",
+        "scripts/persistence-proof.test.mjs": "89cd16ad24015d1f3aeb821f71ffb09550cfe7cfed1afa4f2ef0c94dba203012",
+        "scripts/audit-phaser-project.mjs": "1828ad4da31e2dcc6a06c63002e9ee19db4bb310479968cb79e7077fd8684eb7",
+        "scripts/check-phaser-api.mjs": "5ae0343802ccf05c653971f9720bc0105167e60bb338b25841dc0b35dcdc99b1",
+        "scripts/api-anchors.json": "4e4cbceac7534b0796552f2b8b5f3596db1ca5932e1a567a6f87c8767bb5adf9",
+        "scripts/check-release.mjs": "f4525fd34853f76d58fd078a5be26778b698dc27233ec50ecb11dbaabd79d6ef",
+        "scripts/check-release.test.mjs": "6634964e99ec10f72fbe2933823f34d06440fc41a193540f56576e2de34eeb03"
+      }
+    },
+    {
+      "version": 10,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "e7c99d8417d0d7ffb8461c82560cc2dcae1f7df9bfd4b3524cf891da09fdfb04",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "34eadf09b60ea9a09c9270a671e356a401c38c1ae6cf23270b31510c475c6d08",
+        "scripts/quality-input-driver.test.mjs": "f15c8a7b81eb35077ed05c7312ad90bb6a7d4bba0ac7c17b832313221391bc1b",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce",
+        "scripts/persistence-proof.mjs": "94d77e77324c761bcac5306e56387cc4f0ba623dbc24dcfabe2dff2a843aa5d3",
+        "scripts/persistence-proof.test.mjs": "81cfefde04d3e13509ca41ca867ad813b0b39d082dfc7015b20737f2b5d8af2b",
+        "scripts/audit-phaser-project.mjs": "1828ad4da31e2dcc6a06c63002e9ee19db4bb310479968cb79e7077fd8684eb7",
+        "scripts/check-phaser-api.mjs": "5ae0343802ccf05c653971f9720bc0105167e60bb338b25841dc0b35dcdc99b1",
+        "scripts/api-anchors.json": "4e4cbceac7534b0796552f2b8b5f3596db1ca5932e1a567a6f87c8767bb5adf9",
+        "scripts/check-release.mjs": "f4525fd34853f76d58fd078a5be26778b698dc27233ec50ecb11dbaabd79d6ef",
+        "scripts/check-release.test.mjs": "6634964e99ec10f72fbe2933823f34d06440fc41a193540f56576e2de34eeb03"
+      }
+    },
+    {
+      "version": 9,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "b5a24e2bbf2591f34035e7a6ceecf1da39e884e07b7d1bc9694e4f9df7b04fa2",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "34eadf09b60ea9a09c9270a671e356a401c38c1ae6cf23270b31510c475c6d08",
+        "scripts/quality-input-driver.test.mjs": "f15c8a7b81eb35077ed05c7312ad90bb6a7d4bba0ac7c17b832313221391bc1b",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce",
+        "scripts/audit-phaser-project.mjs": "1828ad4da31e2dcc6a06c63002e9ee19db4bb310479968cb79e7077fd8684eb7",
+        "scripts/check-phaser-api.mjs": "5ae0343802ccf05c653971f9720bc0105167e60bb338b25841dc0b35dcdc99b1",
+        "scripts/api-anchors.json": "4e4cbceac7534b0796552f2b8b5f3596db1ca5932e1a567a6f87c8767bb5adf9",
+        "scripts/check-release.mjs": "f4525fd34853f76d58fd078a5be26778b698dc27233ec50ecb11dbaabd79d6ef",
+        "scripts/check-release.test.mjs": "6634964e99ec10f72fbe2933823f34d06440fc41a193540f56576e2de34eeb03"
+      }
+    },
+    {
+      "version": 8,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "9957401c0f00db8c49fff655bf019238a12f9c2b1235a2f793b196a7fe9d08ba",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "34eadf09b60ea9a09c9270a671e356a401c38c1ae6cf23270b31510c475c6d08",
+        "scripts/quality-input-driver.test.mjs": "f15c8a7b81eb35077ed05c7312ad90bb6a7d4bba0ac7c17b832313221391bc1b",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce",
+        "scripts/audit-phaser-project.mjs": "1828ad4da31e2dcc6a06c63002e9ee19db4bb310479968cb79e7077fd8684eb7",
+        "scripts/check-phaser-api.mjs": "5ae0343802ccf05c653971f9720bc0105167e60bb338b25841dc0b35dcdc99b1",
+        "scripts/api-anchors.json": "4e4cbceac7534b0796552f2b8b5f3596db1ca5932e1a567a6f87c8767bb5adf9",
+        "scripts/check-release.mjs": "f4525fd34853f76d58fd078a5be26778b698dc27233ec50ecb11dbaabd79d6ef",
+        "scripts/check-release.test.mjs": "6634964e99ec10f72fbe2933823f34d06440fc41a193540f56576e2de34eeb03"
+      }
+    },
+    {
+      "version": 7,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "191772944bca08a2db5dcea8933e7eac8418133280c88225579242c36f14b6f6",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "34eadf09b60ea9a09c9270a671e356a401c38c1ae6cf23270b31510c475c6d08",
+        "scripts/quality-input-driver.test.mjs": "f15c8a7b81eb35077ed05c7312ad90bb6a7d4bba0ac7c17b832313221391bc1b",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce",
+        "scripts/audit-phaser-project.mjs": "1828ad4da31e2dcc6a06c63002e9ee19db4bb310479968cb79e7077fd8684eb7",
+        "scripts/check-phaser-api.mjs": "5ae0343802ccf05c653971f9720bc0105167e60bb338b25841dc0b35dcdc99b1",
+        "scripts/api-anchors.json": "4e4cbceac7534b0796552f2b8b5f3596db1ca5932e1a567a6f87c8767bb5adf9",
+        "scripts/check-release.mjs": "f4525fd34853f76d58fd078a5be26778b698dc27233ec50ecb11dbaabd79d6ef",
+        "scripts/check-release.test.mjs": "6634964e99ec10f72fbe2933823f34d06440fc41a193540f56576e2de34eeb03"
+      }
+    },
+    {
+      "version": 6,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "191772944bca08a2db5dcea8933e7eac8418133280c88225579242c36f14b6f6",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "34eadf09b60ea9a09c9270a671e356a401c38c1ae6cf23270b31510c475c6d08",
+        "scripts/quality-input-driver.test.mjs": "f15c8a7b81eb35077ed05c7312ad90bb6a7d4bba0ac7c17b832313221391bc1b",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce",
+        "scripts/audit-phaser-project.mjs": "2ad457152830225a9488b9a8aae4fdbfc3bff6cbf7ac71330d0abe0480e799ba",
+        "scripts/check-phaser-api.mjs": "5ae0343802ccf05c653971f9720bc0105167e60bb338b25841dc0b35dcdc99b1",
+        "scripts/api-anchors.json": "4e4cbceac7534b0796552f2b8b5f3596db1ca5932e1a567a6f87c8767bb5adf9",
+        "scripts/check-release.mjs": "f4525fd34853f76d58fd078a5be26778b698dc27233ec50ecb11dbaabd79d6ef",
+        "scripts/check-release.test.mjs": "6634964e99ec10f72fbe2933823f34d06440fc41a193540f56576e2de34eeb03"
+      }
+    },
+    {
+      "version": 5,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "e375945e42d80164749be1ebd15ac693fd2a5b1b3b4b562fb3b55c9deb188737",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "34eadf09b60ea9a09c9270a671e356a401c38c1ae6cf23270b31510c475c6d08",
+        "scripts/quality-input-driver.test.mjs": "f15c8a7b81eb35077ed05c7312ad90bb6a7d4bba0ac7c17b832313221391bc1b",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce"
+      }
+    },
+    {
+      "version": 4,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "b65526301cdb03b27b1cb50c1c3c8f45c00f767a2f9721682ceef034d5471677",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "34eadf09b60ea9a09c9270a671e356a401c38c1ae6cf23270b31510c475c6d08",
+        "scripts/quality-input-driver.test.mjs": "f15c8a7b81eb35077ed05c7312ad90bb6a7d4bba0ac7c17b832313221391bc1b",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce"
+      }
+    },
+    {
+      "version": 3,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "62de3cd291ce7e4edc246403cd8f920f6eb3351edd4d985744165c54deed4c8e",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "34eadf09b60ea9a09c9270a671e356a401c38c1ae6cf23270b31510c475c6d08",
+        "scripts/quality-input-driver.test.mjs": "f15c8a7b81eb35077ed05c7312ad90bb6a7d4bba0ac7c17b832313221391bc1b",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce"
+      }
+    },
+    {
+      "version": 2,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "c85c0eb8bb7e42c0963b81722dbc9823b21fddbef88689ce8856cc4a718ff280",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "34eadf09b60ea9a09c9270a671e356a401c38c1ae6cf23270b31510c475c6d08",
+        "scripts/quality-input-driver.test.mjs": "f15c8a7b81eb35077ed05c7312ad90bb6a7d4bba0ac7c17b832313221391bc1b",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce"
+      }
+    },
+    {
+      "version": 1,
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "72d5dfe385cce584203e2378fc81e0e8873e8abb83b1a6289c20ff95d0df460b",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "34eadf09b60ea9a09c9270a671e356a401c38c1ae6cf23270b31510c475c6d08",
+        "scripts/quality-input-driver.test.mjs": "f15c8a7b81eb35077ed05c7312ad90bb6a7d4bba0ac7c17b832313221391bc1b",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce"
+      }
+    }
+  ],
+  "legacyFingerprints": [
+    {
+      "id": "input-plan-desktop-v1",
+      "managedFiles": {
+        "scripts/browser-e2e.mjs": "350d067c5b623ccf8a73a86cd560caba4cd44d40256ae62c1f1340892f7d57a5",
+        "scripts/check-bundle-budget.mjs": "b7d3a36a1841e76285752d3d8697b5ee0e43030055d21f7559c348e76e85cfe3",
+        "scripts/check-bundle-budget.test.mjs": "7505fa08b1dd3991eb9edd7cf87cdee1fd26d14b62ca8552aee18b5311d5e9ee",
+        "scripts/quality-input-driver.mjs": "c50ea9f98bc860a9065b1c5fe9f9b0ee4f0eb54571582a6441c038d58c56fd33",
+        "scripts/quality-input-driver.test.mjs": "79eef93fa18e9c54d1384c06d44a73f94b307b2643433c8976d4d131b9326de9",
+        "scripts/quality-input-plan.mjs": "339777f7b7faae25ee12b721398d0da65835e2d3d8e6d629dadab543160b8d0d",
+        "scripts/quality-input-plan.test.mjs": "ee6e9621089134c09669eb857d4f789b3d64aebce1b93fb99de3df92169e97ce"
+      }
+    }
+  ]
+}

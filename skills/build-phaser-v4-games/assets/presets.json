@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 2,
+  "defaultPreset": "collector",
+  "presets": [
+    {
+      "id": "collector",
+      "label": "Collector Survival",
+      "template": "arcade-starter",
+      "primaryVerb": "collect",
+      "pressure": "avoid moving hazards while shield and time run down",
+      "bestFor": ["collect", "survive", "dodge", "score attack", "arena"],
+      "selectionTerms": ["collect", "collector", "gather", "pickup", "survive", "survival", "dodge", "arena", "score attack", "收集", "采集", "生存", "躲避", "竞技场"],
+      "aliases": ["arcade", "survival", "collect-and-avoid"]
+    },
+    {
+      "id": "courier",
+      "label": "Courier Routes",
+      "template": "arcade-starter",
+      "overlay": "presets/courier",
+      "remove": [
+        "public/assets/drone.svg",
+        "public/assets/player.svg",
+        "public/assets/shard.svg"
+      ],
+      "primaryVerb": "deliver",
+      "pressure": "route expiring cargo through moving hazards",
+      "bestFor": ["deliver", "route", "carry", "match destinations", "time trial"],
+      "selectionTerms": ["deliver", "delivery", "courier", "route", "carry", "transport", "destination", "lighthouse", "送货", "配送", "快递", "运输", "路线", "灯塔"],
+      "aliases": ["delivery", "routes", "transport"]
+    },
+    {
+      "id": "platformer",
+      "label": "Platform Ascent",
+      "template": "arcade-starter",
+      "overlay": "presets/platformer",
+      "remove": [
+        "public/assets/drone.svg",
+        "public/assets/field.svg",
+        "public/assets/player.svg",
+        "public/assets/shard.svg"
+      ],
+      "primaryVerb": "jump",
+      "pressure": "cross platforms and collect relics while hazards deplete hearts",
+      "bestFor": ["jump", "platform", "climb", "run", "precision movement"],
+      "selectionTerms": ["jump", "jumper", "platform", "platformer", "climb", "runner", "side scrolling", "precision movement", "跳跃", "平台", "攀爬", "跑酷", "横版"],
+      "aliases": ["platform", "jumper", "runner"]
+    },
+    {
+      "id": "shooter",
+      "label": "Starfighter Assault",
+      "template": "arcade-starter",
+      "overlay": "presets/shooter",
+      "remove": [
+        "public/assets/drone.svg",
+        "public/assets/field.svg",
+        "public/assets/player.svg",
+        "public/assets/shard.svg"
+      ],
+      "primaryVerb": "shoot",
+      "pressure": "destroy descending raiders before they breach the defense line",
+      "bestFor": ["shoot", "space combat", "starfighter", "blaster", "shoot 'em up"],
+      "selectionTerms": ["shoot", "shooter", "shooting", "blaster", "starfighter", "space combat", "dogfight", "bullet hell", "shoot em up", "shmup", "射击", "战机", "飞船", "太空战斗", "弹幕", "打飞机", "飞机大战"],
+      "aliases": ["shoot-em-up", "shmup", "starfighter"]
+    },
+    {
+      "id": "breakout",
+      "label": "Prism Breakout",
+      "template": "arcade-starter",
+      "overlay": "presets/breakout",
+      "remove": [
+        "public/assets/drone.svg",
+        "public/assets/field.svg",
+        "public/assets/player.svg",
+        "public/assets/shard.svg"
+      ],
+      "primaryVerb": "break",
+      "pressure": "return the ball with the paddle before the final ball drops",
+      "bestFor": ["brick breaker", "breakout", "paddle", "ball bounce", "arkanoid"],
+      "selectionTerms": ["breakout", "brick breaker", "brick-breaking", "break bricks", "paddle", "arkanoid", "bat and ball", "打砖块", "砖块", "球拍", "弹球", "反弹小球"],
+      "aliases": ["brick-breaker", "arkanoid", "paddle-ball"]
+    },
+    {
+      "id": "racing",
+      "label": "Hover Circuit Racing",
+      "template": "arcade-starter",
+      "overlay": "presets/racing",
+      "remove": [
+        "public/assets/drone.svg",
+        "public/assets/field.svg",
+        "public/assets/player.svg",
+        "public/assets/shard.svg"
+      ],
+      "primaryVerb": "race",
+      "pressure": "clear ordered checkpoints while avoiding track barriers",
+      "bestFor": ["racing", "top-down driving", "checkpoints", "time trial", "hover racer"],
+      "selectionTerms": ["race", "racing", "racer", "driving", "drive", "checkpoint", "circuit", "lap", "time trial", "hover racer", "赛车", "竞速", "驾驶", "赛道", "检查点", "圈速", "漂移"],
+      "aliases": ["race", "racer", "driving"]
+    },
+    {
+      "id": "chess-puzzle",
+      "label": "Chess Tactics Archive",
+      "template": "arcade-starter",
+      "overlay": "presets/chess-puzzle",
+      "remove": [
+        "public/assets/drone.svg",
+        "public/assets/field.svg",
+        "public/assets/player.svg",
+        "public/assets/shard.svg"
+      ],
+      "primaryVerb": "solve",
+      "pressure": "find engine-validated checkmates before attempts run out",
+      "bestFor": ["chess tactics", "checkmate puzzle", "mate in one", "board puzzle", "legal move challenge"],
+      "selectionTerms": ["chess", "chess puzzle", "chess tactics", "checkmate", "mate in one", "board puzzle", "tactical puzzle", "国际象棋", "将死", "一步杀", "棋类谜题", "战术题"],
+      "aliases": ["chess", "tactics", "mate-in-one"]
+    },
+    {
+      "id": "tower-defense",
+      "label": "Citadel Grid Defense",
+      "template": "arcade-starter",
+      "overlay": "presets/tower-defense",
+      "remove": [
+        "public/assets/drone.svg",
+        "public/assets/field.svg",
+        "public/assets/player.svg",
+        "public/assets/shard.svg"
+      ],
+      "primaryVerb": "defend",
+      "pressure": "activate turret nodes before invaders breach the core",
+      "bestFor": ["tower defense", "turrets", "base defense", "wave defense", "fortification"],
+      "selectionTerms": ["tower defense", "tower defence", "turret", "defend", "fortify", "base defense", "wave defense", "塔防", "炮塔", "防守", "防御", "守卫", "守塔", "抵御", "波次防守"],
+      "aliases": ["defense", "tower-defence", "td"]
+    }
+  ]
+}

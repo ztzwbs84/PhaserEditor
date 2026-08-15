@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#07131b" />
+    <meta name="description" content="__GAME_TITLE_HTML__, a Phaser 4 starfighter game." />
+    <link rel="icon" href="./assets/fighter.svg" type="image/svg+xml" />
+    <title>__GAME_TITLE_HTML__</title>
+  </head>
+  <body>
+    <main id="app">
+      <header class="game-bar" aria-label="Game controls">
+        <strong class="game-title">__GAME_TITLE_HTML__</strong>
+        <div class="game-stats" aria-label="Current sortie">
+          <span><span class="stat-label">Kills</span> <output id="progress-value">0</output></span>
+          <span><span class="stat-label">Wave</span> <output id="auxiliary-value">1</output></span>
+          <span><span class="stat-label">Shield</span> <output id="pressure-value">3</output></span>
+        </div>
+        <div class="game-actions">
+          <button id="pause-button" type="button" aria-pressed="false">Pause</button>
+          <button id="sound-button" type="button" aria-pressed="false">Sound on</button>
+          <button id="restart-button" type="button">Restart</button>
+        </div>
+      </header>
+      <div id="game" tabindex="0" aria-label="__GAME_TITLE_HTML__ game canvas"></div>
+      <section class="game-telemetry shooter-telemetry" aria-label="Current sortie">
+        <div class="sortie-objective">
+          <span class="telemetry-label">Target</span>
+          <output id="sortie-objective">Destroy nearest raider</output>
+        </div>
+        <dl class="sortie-details">
+          <div><dt>Chain</dt><dd><output id="sortie-chain">x1</output></dd></div>
+          <div><dt>Score</dt><dd><output id="sortie-score">0</output></dd></div>
+          <div><dt>Remaining</dt><dd><output id="sortie-remaining">4</output></dd></div>
+        </dl>
+      </section>
+      <p id="game-status" class="sr-only" aria-live="polite">Loading game</p>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

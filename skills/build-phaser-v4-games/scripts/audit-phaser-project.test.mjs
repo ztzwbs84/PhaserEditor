@@ -55,6 +55,17 @@ test('ignores migration-looking comments, strings, and unrelated source', async 
   });
 });
 
+test('excludes project tooling scripts from the product source audit', async () => {
+  await withProject({
+    'src/scene.ts': `import Phaser from 'phaser'; export class SafeScene extends Phaser.Scene {}`,
+    'scripts/quality-rule.mjs': `import Phaser from 'phaser'; new Phaser.Geom.Point(); Phaser.Math.PI2;`,
+  }, (report) => {
+    assert.equal(report.sourceFiles, 1);
+    assert.equal(report.phaserSourceFiles, 1);
+    assert.equal(report.findings.length, 0);
+  });
+});
+
 test('detects Phaser 3 migration APIs and Phaser 4.2 factory casing errors', async () => {
   await withProject({
     'src/legacy.ts': `

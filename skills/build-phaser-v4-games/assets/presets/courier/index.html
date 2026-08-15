@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#171719" />
+    <meta name="description" content="__GAME_TITLE_HTML__, a Phaser 4 courier game." />
+    <link rel="icon" href="./assets/ember.svg" type="image/svg+xml" />
+    <title>__GAME_TITLE_HTML__</title>
+  </head>
+  <body>
+    <main id="app">
+      <header class="game-bar" aria-label="Game controls">
+        <strong class="game-title">__GAME_TITLE_HTML__</strong>
+        <div class="game-stats" aria-label="Current route">
+          <span><span class="stat-label">Deliveries</span> <output id="progress-value">0</output></span>
+          <span><span class="stat-label">Time</span> <output id="auxiliary-value">75</output></span>
+          <span><span class="stat-label">Flame</span> <output id="pressure-value">3</output></span>
+        </div>
+        <div class="game-actions">
+          <button id="pause-button" type="button" aria-pressed="false">Pause</button>
+          <button id="sound-button" type="button" aria-pressed="false">Sound on</button>
+          <button id="restart-button" type="button">Restart</button>
+        </div>
+      </header>
+      <div id="game" tabindex="0" aria-label="__GAME_TITLE_HTML__ game canvas"></div>
+      <section class="game-telemetry route-telemetry" aria-label="Current delivery">
+        <div class="route-objective">
+          <span class="telemetry-label">Route</span>
+          <output id="route-objective">North beacon</output>
+        </div>
+        <dl class="route-details">
+          <div><dt>Cargo</dt><dd><output id="route-cargo-time">11.0s</output></dd></div>
+          <div><dt>Streak</dt><dd><output id="route-streak">0</output></dd></div>
+          <div><dt>Points</dt><dd><output id="route-points">0</output></dd></div>
+        </dl>
+      </section>
+      <p id="game-status" class="sr-only" aria-live="polite">Loading game</p>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

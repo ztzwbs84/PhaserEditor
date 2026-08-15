@@ -1,0 +1,60 @@
+{
+  "bundle": {
+    "maximumEntryBytes": 1750000,
+    "maximumEntryGzipBytes": 400000,
+    "maximumTotalBytes": 1770000,
+    "maximumTotalGzipBytes": 410000,
+    "forbidSourceMaps": true
+  },
+  "browser": {
+    "desktop": { "width": 1280, "height": 720 },
+    "mobile": { "width": 390, "height": 844 },
+    "minimumTouchTarget": 44,
+    "maximumConsoleWarnings": 0
+  },
+  "persistence": {
+    "required": true,
+    "migrationFromVersion": 1,
+    "migrationFixture": { "schemaVersion": 1, "muted": true, "bestProgress": 1 },
+    "schemaVersion": 2,
+    "proofs": {
+      "migration": [
+        { "path": "schemaVersion", "op": "equals", "value": 2 },
+        { "path": "settings.muted", "op": "equalsFixture", "fixturePath": "muted" },
+        { "path": "stats.runsStarted", "op": "equals", "value": 1 },
+        { "path": "stats.runsCompleted", "op": "equals", "value": 0 },
+        { "path": "stats.wins", "op": "equals", "value": 0 },
+        { "path": "stats.losses", "op": "equals", "value": 0 },
+        { "path": "stats.bestProgress", "op": "equalsFixture", "fixturePath": "bestProgress" }
+      ],
+      "gameplay": [
+        { "path": "schemaVersion", "op": "preserved" },
+        { "path": "settings.muted", "op": "preserved" },
+        { "path": "stats.runsStarted", "op": "incrementedBy", "amount": 4 },
+        { "path": "stats.runsCompleted", "op": "incrementedBy", "amount": 2 },
+        { "path": "stats.wins", "op": "incrementedBy", "amount": 1 },
+        { "path": "stats.losses", "op": "incrementedBy", "amount": 1 },
+        { "path": "stats.bestProgress", "op": "derivedFrom", "source": "successProgress" }
+      ],
+      "reload": [
+        { "path": "schemaVersion", "op": "preserved" },
+        { "path": "settings.muted", "op": "preserved" },
+        { "path": "stats.runsStarted", "op": "incrementedBy", "amount": 1 },
+        { "path": "stats.runsCompleted", "op": "preserved" },
+        { "path": "stats.wins", "op": "preserved" },
+        { "path": "stats.losses", "op": "preserved" },
+        { "path": "stats.bestProgress", "op": "preserved" }
+      ]
+    }
+  },
+  "gameplay": {
+    "primaryAction": "clear-checkpoint",
+    "progressName": "checkpoints",
+    "completionTarget": 4,
+    "auxiliaryName": "lap",
+    "pressureName": "chassis",
+    "maximumPressure": 3,
+    "successReason": "lap-complete",
+    "failureReason": "chassis-wrecked"
+  }
+}

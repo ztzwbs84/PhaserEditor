@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#111718" />
+    <meta name="description" content="__GAME_TITLE_HTML__, a Phaser 4 chess tactics game." />
+    <link rel="icon" href="./assets/tactics-seal.svg" type="image/svg+xml" />
+    <title>__GAME_TITLE_HTML__</title>
+  </head>
+  <body>
+    <main id="app">
+      <header class="game-bar" aria-label="Game controls">
+        <strong class="game-title">__GAME_TITLE_HTML__</strong>
+        <div class="game-stats" aria-label="Current tactic">
+          <span><span class="stat-label">Solved</span> <output id="progress-value">0</output></span>
+          <span><span class="stat-label">Puzzle</span> <output id="auxiliary-value">1</output></span>
+          <span><span class="stat-label">Attempts</span> <output id="pressure-value">3</output></span>
+        </div>
+        <div class="game-actions">
+          <button id="pause-button" type="button" aria-pressed="false">Pause</button>
+          <button id="sound-button" type="button" aria-pressed="false">Sound on</button>
+          <button id="restart-button" type="button">Restart</button>
+        </div>
+      </header>
+      <div id="game" tabindex="0" aria-label="__GAME_TITLE_HTML__ game canvas"></div>
+      <section class="game-telemetry puzzle-telemetry" aria-label="Current tactic">
+        <div class="puzzle-objective">
+          <span class="telemetry-label">Tactical archive</span>
+          <output id="puzzle-objective">Seal the first rank</output>
+        </div>
+        <dl class="puzzle-details">
+          <div><dt>Puzzle</dt><dd><output id="puzzle-stage">1 / 3</output></dd></div>
+          <div><dt>Attempts</dt><dd><output id="puzzle-attempts">3</output></dd></div>
+          <div><dt>Score</dt><dd><output id="puzzle-score">0</output></dd></div>
+        </dl>
+      </section>
+      <p id="game-status" class="sr-only" aria-live="polite">Loading game</p>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

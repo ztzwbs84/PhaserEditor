@@ -1,0 +1,241 @@
+:root {
+  color: #f5f7f2;
+  background: #10171c;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  min-width: 280px;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: #10171c;
+}
+
+#app {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.game-bar {
+  z-index: 2;
+  min-height: 52px;
+  padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 8px max(12px, env(safe-area-inset-left));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #34444b;
+  background: #162128;
+}
+
+.game-title {
+  min-width: 0;
+  overflow: hidden;
+  color: #f7d36b;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: #f5f7f2;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+}
+
+.game-stats > span {
+  white-space: nowrap;
+}
+
+.stat-label {
+  color: #9fb5b5;
+}
+
+.game-stats output {
+  min-width: 2ch;
+  display: inline-block;
+  color: #f7d36b;
+  font-weight: 700;
+  text-align: right;
+}
+
+.game-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+}
+
+button {
+  min-width: 74px;
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid #52656c;
+  border-radius: 6px;
+  color: #f5f7f2;
+  background: #243239;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: #7ed6c4;
+  background: #2d4145;
+}
+
+button:focus-visible {
+  outline: 3px solid #f7d36b;
+  outline-offset: 2px;
+}
+
+button[aria-pressed="true"] {
+  border-color: #f18f71;
+  background: #56332f;
+}
+
+#game {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: none;
+  background: #10171c;
+}
+
+#game canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.game-telemetry {
+  display: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 560px) {
+  #app {
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+
+  .game-bar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .game-title {
+    text-align: center;
+  }
+
+  .game-stats {
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .game-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  button {
+    min-width: 0;
+    min-height: 44px;
+  }
+
+  #game {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+
+  .game-telemetry {
+    min-height: 0;
+    padding: 18px max(20px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+    display: grid;
+    align-content: start;
+    gap: 18px;
+    border-top: 1px solid #34444b;
+    background: #162128;
+  }
+
+  .mission-objective {
+    display: grid;
+    gap: 4px;
+  }
+
+  .telemetry-label,
+  .mission-details dt {
+    color: #9fb5b5;
+    font-size: 11px;
+    text-transform: uppercase;
+  }
+
+  #mission-objective {
+    color: #f7d36b;
+    font-size: 21px;
+    font-weight: 700;
+  }
+
+  .mission-details {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .mission-details div {
+    min-width: 0;
+    padding-top: 10px;
+    border-top: 1px solid #40545c;
+  }
+
+  .mission-details dt,
+  .mission-details dd {
+    margin: 0;
+  }
+
+  .mission-details dd {
+    margin-top: 4px;
+    color: #f5f7f2;
+    font-size: 17px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+}

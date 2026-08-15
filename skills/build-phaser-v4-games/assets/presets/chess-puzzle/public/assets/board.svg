@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="448" height="448" viewBox="0 0 448 448">
+  <rect width="448" height="448" rx="6" fill="#e5e0d0"/>
+  <path fill="#546d69" d="M56 0h56v56H56zm112 0h56v56h-56zm112 0h56v56h-56zm112 0h56v56h-56zM0 56h56v56H0zm112 0h56v56h-56zm112 0h56v56h-56zm112 0h56v56h-56zM56 112h56v56H56zm112 0h56v56h-56zm112 0h56v56h-56zm112 0h56v56h-56zM0 168h56v56H0zm112 0h56v56h-56zm112 0h56v56h-56zm112 0h56v56h-56zM56 224h56v56H56zm112 0h56v56h-56zm112 0h56v56h-56zm112 0h56v56h-56zM0 280h56v56H0zm112 0h56v56h-56zm112 0h56v56h-56zm112 0h56v56h-56zM56 336h56v56H56zm112 0h56v56h-56zm112 0h56v56h-56zm112 0h56v56h-56zM0 392h56v56H0zm112 0h56v56h-56zm112 0h56v56h-56zm112 0h56v56h-56z"/>
+  <rect x="3" y="3" width="442" height="442" rx="5" fill="none" stroke="#e7c66a" stroke-width="6"/>
+</svg>

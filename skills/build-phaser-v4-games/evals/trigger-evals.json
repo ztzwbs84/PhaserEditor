@@ -1,5 +1,13 @@
 [
   {
+    "query": "一键帮我做一个完整可玩的 2D 浏览器小游戏，题材和核心循环你先合理决定，要有键盘和触屏操作、音效、暂停、失败重开、手机适配，并且直接运行验证。",
+    "should_trigger": true
+  },
+  {
+    "query": "Turn this short arcade game idea into a polished playable web game from an empty folder, choose sensible defaults, include a complete loop and production build, then prove the controls in a real browser.",
+    "should_trigger": true
+  },
+  {
     "query": "Build a Phaser 4.2.1 TypeScript platformer with Arcade Physics, Tiled levels, responsive cameras, gamepad controls, loading errors, and leak-free Scene restart.",
     "should_trigger": true
   },
@@ -37,6 +45,26 @@
   },
   {
     "query": "Create and test a reusable Phaser 4 Scene Plugin and custom Game Object, and decide whether a Filter, Mesh2D, or RenderNode is the right rendering extension.",
+    "should_trigger": true
+  },
+  {
+    "query": "用一句中文创意一键生成 Phaser 4 塔防游戏：三座炮塔发射实体弹体拦截沿路线入侵的敌人，核心会被突破，支持键盘、触屏、胜负重开、手机布局和完整浏览器发布验证。",
+    "should_trigger": true
+  },
+  {
+    "query": "一键做一个 Phaser 4 打砖块游戏：玩家用球拍反弹实体小球清除砖墙，漏球会损失生命，支持键盘、触屏、暂停、胜负重开、移动端布局和完整浏览器发布验证。",
+    "should_trigger": true
+  },
+  {
+    "query": "用一句中文创意一键生成 Phaser 4 顶视角赛车游戏：悬浮赛车有惯性和转向，按顺序穿过赛道检查点，撞护栏会损坏底盘，并支持键盘、触屏、胜负重开和完整浏览器发布验证。",
+    "should_trigger": true
+  },
+  {
+    "query": "一键做一个 Phaser 4 横版跳跃小游戏，玩家要跑过平台、收集空中的遗物、躲避尖刺，并支持键盘、触屏、暂停、失败重开和真实浏览器验证。",
+    "should_trigger": true
+  },
+  {
+    "query": "用一句中文创意直接生成一个 Phaser 4 太空战机射击游戏，要有真实子弹碰撞、敌机压力、键盘和触屏操作、胜负重开、手机布局以及完整浏览器发布验证。",
     "should_trigger": true
   },
   {

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#111813" />
+    <meta name="description" content="__GAME_TITLE_HTML__, a Phaser 4 tower defense game." />
+    <link rel="icon" href="./assets/turret.svg" type="image/svg+xml" />
+    <title>__GAME_TITLE_HTML__</title>
+  </head>
+  <body>
+    <main id="app">
+      <header class="game-bar" aria-label="Game controls">
+        <strong class="game-title">__GAME_TITLE_HTML__</strong>
+        <div class="game-stats" aria-label="Current defense">
+          <span><span class="stat-label">Intercepts</span> <output id="progress-value">0</output></span>
+          <span><span class="stat-label">Wave</span> <output id="auxiliary-value">1</output></span>
+          <span><span class="stat-label">Core</span> <output id="pressure-value">3</output></span>
+        </div>
+        <div class="game-actions">
+          <button id="pause-button" type="button" aria-pressed="false">Pause</button>
+          <button id="sound-button" type="button" aria-pressed="false">Sound on</button>
+          <button id="restart-button" type="button">Restart</button>
+        </div>
+      </header>
+      <div id="game" tabindex="0" aria-label="__GAME_TITLE_HTML__ game canvas"></div>
+      <section class="game-telemetry defense-telemetry" aria-label="Current defense">
+        <div class="defense-objective">
+          <span class="telemetry-label">Directive</span>
+          <output id="defense-objective">Intercept nearest invader</output>
+        </div>
+        <dl class="defense-details">
+          <div><dt>Turret</dt><dd><output id="defense-turret">Alpha</output></dd></div>
+          <div><dt>Score</dt><dd><output id="defense-score">0</output></dd></div>
+          <div><dt>Remaining</dt><dd><output id="defense-remaining">4</output></dd></div>
+        </dl>
+      </section>
+      <p id="game-status" class="sr-only" aria-live="polite">Loading game</p>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

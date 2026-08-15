@@ -85,6 +85,47 @@ interface SaveV3 {
 - Treat local storage as user-controlled input.
 - Separate cosmetic settings from authoritative progression and server-owned entitlements.
 
+For generated projects, declare browser-verifiable profile relationships under `game-quality.json.persistence.proofs`. The managed verifier captures the profile immediately after fixture migration, after one real failure and one real success plus the standard restart checks, and after a real reload. Each phase must contain 1-32 unique safe dot paths, with at most 64 rules total. Use only:
+
+- `equalsFixture`: the current path equals `migrationFixture` at `fixturePath` (or the same path).
+- `equals`: the current path equals a bounded JSON primitive.
+- `preserved`: the current path equals the preceding phase.
+- `incrementedBy`: a numeric path equals the preceding phase plus `amount`, or plus `successProgress`, `failureProgress`, or `terminalProgressTotal` through `source`. During migration it uses the fixture as its baseline.
+- `derivedFrom`: the path equals a fixture field or one of the bounded progress sources.
+
+Every `preserved` or post-migration `incrementedBy` rule needs a same-path rule in the preceding phase. Cover `settings.muted` in all phases and bind at least one gameplay proof to actual terminal progress. Example for a schema 2 to 3 economy extension, assuming the failure path earns no credits:
+
+```json
+{
+  "migrationFromVersion": 2,
+  "migrationFixture": {
+    "schemaVersion": 2,
+    "settings": { "muted": true },
+    "stats": { "runsStarted": 9, "runsCompleted": 7, "wins": 4, "losses": 3, "bestProgress": 37 }
+  },
+  "schemaVersion": 3,
+  "proofs": {
+    "migration": [
+      { "path": "settings.muted", "op": "equalsFixture" },
+      { "path": "stats.runsStarted", "op": "incrementedBy", "amount": 1 },
+      { "path": "economy.lifetimeCredits", "op": "derivedFrom", "source": "fixture", "sourcePath": "stats.bestProgress" }
+    ],
+    "gameplay": [
+      { "path": "settings.muted", "op": "preserved" },
+      { "path": "stats.runsStarted", "op": "incrementedBy", "amount": 4 },
+      { "path": "economy.lifetimeCredits", "op": "incrementedBy", "source": "successProgress" }
+    ],
+    "reload": [
+      { "path": "settings.muted", "op": "preserved" },
+      { "path": "stats.runsStarted", "op": "incrementedBy", "amount": 1 },
+      { "path": "economy.lifetimeCredits", "op": "preserved" }
+    ]
+  }
+}
+```
+
+Use `terminalProgressTotal` when both terminal outcomes contribute. Add more rules for every field whose preservation or delta is release-critical. The summary validator independently recomputes rule outcomes; never edit proof evidence or fork the managed verifier to make a project pass.
+
 For replay/rollback/networking, record domain commands and deterministic state snapshots. Phaser tweens, animations, random globals, browser time, and physics engines are not automatically deterministic across machines. Seed and encapsulate randomness; use server/epoch time for authoritative deadlines.
 
 Do not let network callbacks mutate Game Objects directly. Convert responses/messages to domain events and process them at an owned update boundary. Abort or generation-check late callbacks after Scene shutdown.
@@ -104,6 +145,10 @@ Every async integration needs timeout, cancellation/stale-result policy, error c
 Do not swallow loader errors or silently replace missing paid content. Log stable asset key/type/build version/resolved host and cause. Avoid full raw URLs when they can contain credentials/query secrets.
 
 Test service-worker/CDN version skew. Code, pack manifests, maps, atlases, and audio must come from a compatible release set. Prefer content-hashed files and an atomic release manifest.
+
+## Idea Selection
+
+For new projects, prefer `create-phaser-game.mjs --idea "<description>"` so preset choice is deterministic and auditable. Treat `presetSelection.matchedTerms` as routing evidence, not proof that the generated sample already satisfies the product request. Refuse an unmatched or tied idea and use explicit `--preset` only after choosing the nearest architecture deliberately. Never silently fall back to the default for a supplied idea. Keep catalog selection terms short, unique across presets, bilingual where supported, and grounded in player verbs or game structure rather than theme words.
 
 ## Testing Strategy
 
@@ -129,6 +174,8 @@ Test service-worker/CDN version skew. Code, pack manifests, maps, atlases, and a
 - Fixed deterministic screenshot Scenes at desktop/mobile, low/high DPR, FIT/RESIZE, and representative Cameras.
 - Pointer/touch/keyboard/gamepad, drag cancellation, focus, fullscreen, orientation, and semantic DOM controls.
 - WebGL context loss/restore and AudioContext unlock/interruption.
+
+Treat input dispatch and input acceptance as separate evidence. Publish `qualityAcceptedInputs` with exactly the summarized `qualityInputPlan.primary` modes as keys and non-negative integer counts as values. Increment at the gameplay authority only after an intent is accepted while the run is `playing`; reset with each run. The browser gate must observe every primary counter increase during normal play and remain unchanged during pause, the post-resume isolation window, and both terminal locks. During the post-resume window, compare counters rather than position or clocks so automatic scrolling, gravity, inertia, animation, and simulation can resume without hiding queued input consumption. Never expose raw input payloads or add a project-specific verifier.
 
 ### Performance and soak
 
@@ -194,4 +241,3 @@ Set budgets for initial compressed bytes, decoded texture memory, frame CPU/GPU,
 - Keyboard and semantic accessibility paths complete critical workflows.
 - Save compatibility, asset licenses, offline/CDN rollout, analytics privacy, and rollback plan are approved.
 - Production build, source maps/error reporting policy, cache headers, and deployment base path are verified.
-

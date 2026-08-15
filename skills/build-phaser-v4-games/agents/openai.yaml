@@ -1,4 +1,4 @@
 interface:
-  display_name: "Phaser 4 Commercial Engineering"
-  short_description: "Build and ship production Phaser 4 games"
-  default_prompt: "Use $build-phaser-v4-games to build, debug, review, optimize, or migrate this Phaser 4 game with version-checked APIs and production verification."
+  display_name: "Phaser 4 Game Studio"
+  short_description: "Create and ship complete Phaser 4 games"
+  default_prompt: "Use $build-phaser-v4-games to turn my idea into a complete playable Phaser 4 game and verify it in the browser."

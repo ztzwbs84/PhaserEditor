@@ -1,11 +1,61 @@
 ---
 name: build-phaser-v4-games
-description: "Single entry point for all Phaser 4 engineering: build, architect, debug, review, optimize, test, ship, extend, or migrate HTML5 2D games. Always use this skill whenever work targets Phaser 4 or a v3-to-v4 migration, including GameConfig, Scenes, assets, Game Objects, input, cameras, audio, time, tweens, physics, tilemaps, particles, filters, RenderNodes, TypeScript, performance, memory, responsive/mobile delivery, and production correctness. It routes versioned official topic references and verifies APIs against installed types and source."
+description: "Build complete commercial-quality 2D browser games with Phaser 4 from a short idea or an existing project, including one-command scaffolding, gameplay, visuals, input, audio, UI, responsive delivery, tests, browser QA, optimization, and shipping. Use whenever a request targets Phaser 4, asks to create a playable 2D web game where Phaser is selected or appropriate, or needs Phaser architecture, debugging, review, extension, or v3-to-v4 migration. Covers GameConfig, Scenes, assets, Game Objects, cameras, physics, tilemaps, particles, filters, RenderNodes, TypeScript, performance, memory, mobile, and production correctness with version-checked APIs."
 ---
 
 # Build Phaser 4 Games
 
 Engineer Phaser 4 games from the installed package outward. Prefer version-scoped source evidence, explicit ownership, deterministic domain logic, and measured production behavior over isolated snippets.
+
+## Create a Playable Game in One Command
+
+For a new game, pass the user's idea directly to the generator before feature work:
+
+```bash
+node <skill-dir>/scripts/create-phaser-game.mjs --idea "<user game description>" --install --verify
+```
+
+`--idea` performs deterministic English/Chinese selection from `assets/presets.json`, derives a stable local output directory, valid ASCII package name, and human-facing title, and records both selection and identity sources in the report and `game-preset.json`. Pass `[output-directory]`, `--name`, or `--title` only when the user requests an override; explicit values always win. Idea routing fails closed on zero matches or a top-score tie; inspect `--list-presets --json` and pass `--preset <preset-id>` only to resolve that ambiguity or deliberately override selection. An explicit preset always wins when both options are supplied. Use `collector` for collect, survive, dodge, score-attack, or arena requests; `courier` for deliver, route, carry, destination-matching, or time-trial requests; `platformer` for jump, platform, climb, run, or precision-movement requests; `shooter` for starfighter, space-combat, blaster, bullet-hell, or shoot-em-up requests; `breakout` for brick-breaker, paddle, bouncing-ball, or Arkanoid requests; `racing` for circuits, checkpoints, laps, driving, drifting, or time-trial requests; `chess-puzzle` for chess tactics, checkmate, mate-in-one, or legal-move board puzzles; and `tower-defense` for turrets, fortification, base defense, or wave-defense requests. The chess preset pins `chess.js` as its headless rules authority; keep legal moves, FEN loading, and terminal mate decisions out of Phaser Scenes. If no preset matches the requested verb, choose only the nearest architecture explicitly, then replace its gameplay rules and quality targets rather than forcing the request into the sample loop.
+
+The atomic generator refuses non-empty targets, installs from the lockfile with `npm ci`, and creates a Phaser 4.2.1 TypeScript game with code-native visual assets, desktop/touch input, semantic DOM controls, pause/restart/mute, procedural audio, a versioned local player profile, loading failure/retry, lifecycle cleanup, domain tests, and a production build. Publication uses bounded retries for transient Windows directory locks and confirms the expected package identity when a rename reports an error after completing. Use `--dry-run --json` to preflight automation. Successful `--json --verify` output is one parseable report; detailed evidence is written under the generated project's ignored `.quality/` directory.
+
+Before verifying an existing generated project, audit its managed quality scripts and apply a safe update when required:
+
+```bash
+node <skill-dir>/scripts/update-phaser-quality-tools.mjs <project-directory> --check
+node <skill-dir>/scripts/update-phaser-quality-tools.mjs <project-directory> --apply
+```
+
+The updater owns the scripts listed in `phaser-quality-tools.json`. It validates SHA-256 hashes, recognizes a strictly descending catalog of trusted versions, transactionally installs new scripts and retires obsolete trusted scripts, and refuses to overwrite project-modified or unrecognized quality scripts. It may also add newly required persistence migration or proof declarations to `game-quality.json` only when the existing schema, source, and fixture exactly match a trusted contract; it preserves every existing valid custom contract and all unrelated project settings, and rolls this additive migration back with the scripts if publication fails. Never copy newer gates over local changes by hand; resolve a reported conflict deliberately, then establish a valid managed manifest before accepting release evidence.
+
+Verification is intentionally fail-closed. It runs strict TypeScript, domain and gate tests, a fresh project-local production build, real gzip bundle budgets, desktop/mobile headless Chromium E2E, the strict Phaser audit, and the API anchor check. SHA-256 fingerprints bind both release inputs and `dist` across the bundle, browser, audit, and API reports plus the generator's final read from the current disk; all five must match, and source, configuration, asset, lockfile, quality-script, or shipped-file drift invalidates prior green evidence. Browser E2E proves composited Canvas pixel variance, every declared primary pointer mode through desktop mouse and mobile touch events, every declared primary keyboard mode on desktop, game-side acceptance of every primary mode, at least one real desktop keyboard action, mobile primary progress, pause/resume ARIA state plus at least one second of frozen domain/auxiliary/player state while every declared primary input is dispatched, a post-resume window proving the acceptance counters do not consume paused input while autonomous movement, gravity, inertia, and timers may resume, reachable success and failure through normal gameplay, terminal input lock by dispatching every declared primary mouse/key mode after both outcomes and comparing complete before/after snapshots and acceptance counters, restart after both outcomes, synchronized auxiliary machine/visible values at desktop and mobile initial play, terminal outcomes, restarts, and mobile progress, the declared historic profile migration, declared profile-field relationships after gameplay and a real reload, 390x844 touch targets and overflow, HTTP responses, runtime exceptions, and console cleanliness. It cross-checks persistence source/target schemas and proof assertions plus the action, progress, pressure, target, input acceptance, pause freeze and resume isolation, auxiliary timeline, terminal input evidence, and terminal reasons against `game-quality.json`, then refreshes portable audit and API JSON in the same run. A failed bundle, browser, audit, or API gate removes its stale evidence instead of leaving an older green report. Chrome or Edge must be installed; set `PHASER_BROWSER_PATH` to a Chromium executable when auto-discovery cannot find it. Do not silently skip a missing gate.
+
+Do not use a preset to replace an existing project; inspect and extend its architecture instead. Treat every preset as a trusted starting point, not a finished product. Adapt the theme, visual assets, rules, balance, progression, feedback, controls, content, and E2E targets. Merely changing the title or palette is not a custom game. Remove every sample concept and asset that does not belong.
+
+Keep the cross-preset quality contract intact: publish the primary action, a versioned `qualityInputPlan`, `qualityAcceptedInputs`, progress name/value, completion target, auxiliary metric name/value, pressure name/value, maximum pressure, primary targets, pressure targets, world size, restart position, terminal kind (`success` or `failure`), and machine-readable terminal reason through the existing `quality*` DOM dataset. Bind `qualityAuxiliaryName` and `qualityAuxiliaryValue` to the visible `#auxiliary-value`; use time, wave, depth, layer, energy, or another real game metric without pretending every game has a countdown. Synchronize it on every domain snapshot, including terminals and restarts; the release report requires desktop/mobile initial, failure/success terminal, both restart, and mobile-progress checkpoints. Keep localized or branded status prose separate from those machine fields. Declare every input required for normal primary progress before running verification; compose pointer click/hold/drag, directional navigation, and key pulse/hold actions with bounded timing in the schema from `scripts/quality-input-plan.mjs` instead of adding gameplay-specific booleans or preset branches. Publish `qualityAcceptedInputs` as a JSON object with exactly one non-negative integer counter for each summarized primary mode, such as `{"pointer:click":2,"key:pulse":1}`. Increment a counter only while `playing` and only where gameplay actually accepts that intent; do not increment merely because a DOM/Phaser event arrived, expose raw keys or coordinates, or add undeclared counters. Reset the counters with the run. The release summary must prove every primary counter grows during normal play, stays frozen throughout pause, does not grow in the resume observation window, and stays frozen after both terminal outcomes. Extend the schema, parser tests, interpreter, counter contract, and summary validator together when a new input primitive is truly required.
+
+Keep `src/platform/player-profile.ts` as the generic local-profile boundary. Store settings and cross-run statistics as validated primitives under the package-scoped key; keep Phaser objects and in-progress physics state out. Add explicit migrations for every accepted historic schema. Declare a bounded `migrationFixture` whose schema matches `migrationFromVersion`; never let the browser gate guess an old schema's shape. Declare `persistence.proofs.migration`, `.gameplay`, and `.reload` with safe dot-separated profile paths. Use only `equalsFixture`, `equals`, `preserved`, `incrementedBy`, and `derivedFrom`; bind gameplay-derived values to `successProgress`, `failureProgress`, or `terminalProgressTotal`. Do not put expressions in the JSON, duplicate `browser-e2e.mjs`, or add a project-local verifier. See `references/production-playbook.md` before adding campaign, economy, inventory, or other schema fields. Preserve an unsupported future schema without writing through it, quarantine bounded corrupt input, and recover only a validated previous slot. Extend the schema, migrations, unit tests, machine fields, proof declarations, and browser reload evidence together. Never claim durable progression from a successful unit test alone.
+
+Update `game-quality.json`, the `qualityInputPlan`, quality targets, terminal reasons, and domain field names before accepting any verification result. Extend `scripts/browser-e2e.mjs` only through generic protocol behavior so one fresh run reaches the changed completion target and proves success is terminal, another fresh run exhausts the changed pressure through gameplay and proves failure is terminal, and both outcomes restart, complete the changed primary action again, then reset cleanly. Inspect `.quality/browser-e2e.json` and reject it when the gameplay names, declared input modes, terminal reasons, or screenshots still describe the starter. Do not use preset IDs or localized prose to branch the generic gate. A green preset-loop report produced before gameplay adaptation is baseline evidence only; it never proves the changed game.
+
+Treat a short prompt as permission to choose reversible defaults and deliver the first playable version. Infer a focused core loop, one player verb, one escalating pressure, one win/score condition, and one loss/end condition. State the defaults in the handoff instead of blocking on non-critical questions. Ask only when a missing choice would materially change external systems, paid assets, platform constraints, or destructive scope.
+
+Preserve the tested ownership and verification structure unless the target repository already has a stronger convention.
+
+Do not declare a new game complete until all are true:
+
+- A player reaches the core loop within 10 seconds and can understand the immediate goal from the game state.
+- Input changes gameplay; feedback makes success, damage, pause, and end states unambiguous.
+- The game has a complete loop: start, play, progression or escalation, a normally reachable success condition, a normally reachable failure condition, and restart after either outcome.
+- Desktop and mobile viewports have coherent layout and usable input without text or controls overlapping.
+- Loading failure, pause/backgrounding, audio policy, reduced motion, and final teardown have deliberate behavior.
+- Domain and quality-gate tests pass.
+- Strict type-check and production build pass.
+- Real compressed bundle sizes remain inside the declared `game-quality.json` budgets.
+- Bundled strict audit and API anchor check pass.
+- Browser E2E proves a visually nonblank composited canvas, covers every declared primary pointer mode with desktop mouse and mobile touch events, covers every declared primary key mode on desktop, proves every primary mode is accepted by gameplay, and requires mobile primary progress.
+- Browser E2E proves the declared profile schema migrates and that settings plus cross-run outcome statistics survive a real reload.
+- `.quality/` contains JSON reports and desktop/mobile screenshots that support the claim.
 
 ## Use One Phaser Entry
 
@@ -167,6 +217,8 @@ On shutdown:
 4. Let Scene systems destroy their owned display/physics/timer resources, but explicitly remove shared assets only after every consumer releases them.
 5. Use `DESTROY` for final Scene removal, not normal restart cleanup.
 
+Do not call `this.physics.world`, Loader, Camera, or other Scene systems from late shutdown work after Phaser has released that plugin. Keep teardown callbacks synchronous where practical, guard optional systems, and prove restart from a real browser with console-error collection; type-checking cannot detect destruction-order faults.
+
 Scene operations are queued. Do not assume `start`, `launch`, `stop`, or `restart` completes synchronously in the same call stack.
 
 ### 5. Keep Time, Physics, and Input Correct
@@ -181,7 +233,7 @@ Scene operations are queued. Do not assume `start`, `launch`, `stop`, or `restar
 
 ### 6. Verify in Proportion to Risk
 
-Run the project's lint, type-check, unit tests, production build, and the bundled audit. For rendering or interaction changes, test the actual canvas in a browser.
+Run the project's lint, type-check, unit tests, production build, declared bundle budgets, and the bundled audit. For rendering or interaction changes, test the actual canvas in a browser. New generated games already expose this full gate through `npm run check`; extend its browser scenario when adapting the sample loop.
 
 When changing this skill or upgrading Phaser, also run:
 
