@@ -1,11 +1,21 @@
 ---
 name: build-phaser-v4-games
-description: "Build complete commercial-quality 2D browser games with Phaser 4 from a short idea or an existing project, including one-command scaffolding, gameplay, visuals, input, audio, UI, responsive delivery, tests, browser QA, optimization, and shipping. Use whenever a request targets Phaser 4, asks to create a playable 2D web game where Phaser is selected or appropriate, or needs Phaser architecture, debugging, review, extension, or v3-to-v4 migration. Covers GameConfig, Scenes, assets, Game Objects, cameras, physics, tilemaps, particles, filters, RenderNodes, TypeScript, performance, memory, mobile, and production correctness with version-checked APIs."
+description: "Build complete commercial-quality 2D browser games with Phaser 4 from a short idea or an existing project, including one-command scaffolding, gameplay, game-native HUDs and menus, bitmap slicing, nine-slice panels, visuals, input, audio, responsive delivery, tests, browser QA, optimization, and shipping. Use whenever a request targets Phaser 4, asks to create a playable 2D web game where Phaser is selected or appropriate, or needs Phaser architecture, debugging, review, extension, UI composition, or v3-to-v4 migration. Covers GameConfig, Scenes, assets, Game Objects, cameras, physics, tilemaps, particles, filters, RenderNodes, TypeScript, performance, memory, mobile, and production correctness with version-checked APIs."
 ---
 
 # Build Phaser 4 Games
 
 Engineer Phaser 4 games from the installed package outward. Prefer version-scoped source evidence, explicit ownership, deterministic domain logic, and measured production behavior over isolated snippets.
+
+## Contents
+
+- [Create a playable game in one command](#create-a-playable-game-in-one-command)
+- [Use one Phaser entry](#use-one-phaser-entry)
+- [Establish ground truth](#establish-ground-truth)
+- [Route references](#route-references)
+- [Follow the engineering workflow](#follow-the-engineering-workflow)
+- [Apply task playbooks](#apply-task-playbooks)
+- [Quality bar](#quality-bar)
 
 ## Create a Playable Game in One Command
 
@@ -18,6 +28,8 @@ node <skill-dir>/scripts/create-phaser-game.mjs --idea "<user game description>"
 `--idea` performs deterministic English/Chinese selection from `assets/presets.json`, derives a stable local output directory, valid ASCII package name, and human-facing title, and records both selection and identity sources in the report and `game-preset.json`. Pass `[output-directory]`, `--name`, or `--title` only when the user requests an override; explicit values always win. Idea routing fails closed on zero matches or a top-score tie; inspect `--list-presets --json` and pass `--preset <preset-id>` only to resolve that ambiguity or deliberately override selection. An explicit preset always wins when both options are supplied. Use `collector` for collect, survive, dodge, score-attack, or arena requests; `courier` for deliver, route, carry, destination-matching, or time-trial requests; `platformer` for jump, platform, climb, run, or precision-movement requests; `shooter` for starfighter, space-combat, blaster, bullet-hell, or shoot-em-up requests; `breakout` for brick-breaker, paddle, bouncing-ball, or Arkanoid requests; `racing` for circuits, checkpoints, laps, driving, drifting, or time-trial requests; `chess-puzzle` for chess tactics, checkmate, mate-in-one, or legal-move board puzzles; and `tower-defense` for turrets, fortification, base defense, or wave-defense requests. The chess preset pins `chess.js` as its headless rules authority; keep legal moves, FEN loading, and terminal mate decisions out of Phaser Scenes. If no preset matches the requested verb, choose only the nearest architecture explicitly, then replace its gameplay rules and quality targets rather than forcing the request into the sample loop.
 
 The atomic generator refuses non-empty targets, installs from the lockfile with `npm ci`, and creates a Phaser 4.2.1 TypeScript game with code-native visual assets, desktop/touch input, semantic DOM controls, pause/restart/mute, procedural audio, a versioned local player profile, loading failure/retry, lifecycle cleanup, domain tests, and a production build. Publication uses bounded retries for transient Windows directory locks and confirms the expected package identity when a rename reports an error after completing. Use `--dry-run --json` to preflight automation. Successful `--json --verify` output is one parseable report; detailed evidence is written under the generated project's ignored `.quality/` directory.
+
+The generated DOM bar and mobile telemetry are an accessibility and quality-protocol baseline, not the final visual language. For a finished game, move visible HUD, menus, dialogs, results, inventory, and touch controls into the Phaser presentation unless the fiction deliberately calls for a browser-like interface. Keep semantic DOM mirrors and `quality*` dataset fields synchronized, but visually hide the mirror when the canvas owns presentation. Do not ship generic website navigation, stat cards, dashboard bands, or system-style buttons around the playfield merely because the starter includes them. Read `references/game-ui-nine-slice.md` before adapting visible UI or supplied UI artwork.
 
 Before verifying an existing generated project, audit its managed quality scripts and apply a safe update when required:
 
@@ -48,6 +60,8 @@ Do not declare a new game complete until all are true:
 - Input changes gameplay; feedback makes success, damage, pause, and end states unambiguous.
 - The game has a complete loop: start, play, progression or escalation, a normally reachable success condition, a normally reachable failure condition, and restart after either outcome.
 - Desktop and mobile viewports have coherent layout and usable input without text or controls overlapping.
+- Visible HUD and menu composition follows the game's art direction rather than the starter's web shell.
+- Resizable bitmap panels preserve their corners and borders through verified nine-slice previews and runtime screenshot crops.
 - Loading failure, pause/backgrounding, audio policy, reduced motion, and final teardown have deliberate behavior.
 - Domain and quality-gate tests pass.
 - Strict type-check and production build pass.
@@ -118,6 +132,7 @@ Read only the references required for the task.
 | GameConfig, boot, Scenes, plugins, lifecycle, global vs local ownership | `references/bootstrap-scenes-lifecycle.md` |
 | Loader, caches, textures, atlases, animations, asset lifetime | `references/assets-textures-animations.md` |
 | Images/Sprites, Groups/Containers/Layers, text, input, DOM UI, accessibility | `references/gameobjects-input-ui.md` |
+| Game-native HUD/menu composition, nine-slice art, bitmap cutting, UI crop QA | `references/game-ui-nine-slice.md` and `scripts/slice-game-ui.py` |
 | Cameras, responsive scale, audio, time, timers, tweens, pause semantics | `references/cameras-scale-audio-time.md` |
 | Arcade and Matter selection, stepping, collisions, bodies, teardown | `references/physics.md` |
 | Tiled maps, CPU/GPU layers, particles, pooling, large-world strategy | `references/tilemaps-particles.md` |
@@ -136,7 +151,7 @@ Use the matching vendored official topic for breadth, then verify every copied s
 Identify before coding:
 
 - Logical viewport and scale mode: fixed/FIT, EXPAND, RESIZE, or custom host layout.
-- Renderer requirement: prefer `Phaser.WEBGL` for v4 filters, lighting, GPU layers, RenderNodes, CustomContext, Mesh2D, and stencil objects. Use `AUTO` only if the Canvas fallback is intentionally supported and feature-gated.
+- Renderer requirement: prefer `Phaser.WEBGL` for v4 filters, lighting, GPU layers, RenderNodes, CustomContext, Mesh2D, stencil objects, and `NineSlice`. Use `AUTO` only if the Canvas fallback is intentionally supported and every WebGL-only UI/rendering feature is gated.
 - Target browsers, wrappers, orientation, DPR/fill-rate budget, and low-end mobile class.
 - Typical and worst-case Game Object, body, particle, tile, light, filter, text, and texture counts.
 - Required loading milestones, offline/CDN policy, save model, scene transitions, pause/background rules, audio unlock, input devices, accessibility, and teardown.
@@ -252,6 +267,7 @@ Verify at minimum:
 - Audio locked/unlocked, background interruption, mute, and cross-Scene ownership.
 - Physics at low/high frame rates, pause/resume, world bounds, sensors, and deterministic rules where promised.
 - No console errors, missing cache keys, shader failures, blank canvas, or inaccessible critical controls.
+- Game UI screenshots at minimum, typical, and maximum content sizes; inspect nine-slice panel crops at 1:1 for fixed corners, constant border thickness, texture bleeding, seams, and text containment.
 - Representative low-end performance with warm and cold paths recorded separately.
 
 Do not claim an optimization from intuition. Record Phaser version, renderer, browser/device/GPU, viewport/DPR, scene counts, median/bad frame time, draw calls/batches, texture memory estimate, and before/after scenario.
@@ -293,5 +309,7 @@ Use Scene/Global Plugins and Custom Game Objects for reusable public extensions.
 - Never copy a signature from an unversioned concept page without checking the installed owner; the official concepts site can retain Phaser 3 APIs under v4 navigation.
 - Avoid private/internal APIs unless source-pinned, documented, and covered by integration tests.
 - Treat accessibility, reduced motion, audio consent, loading failure, save compatibility, analytics privacy, and low-end mobile budgets as product requirements.
+- Keep visible game HUDs and menus in the authored Phaser composition by default; use DOM as a semantic bridge or for genuinely browser-native workflows.
+- Preserve untrimmed nine-slice source frames and verify supplied UI bitmaps with cut cells, stretch/tile previews, and runtime screenshot crops.
 - Cite the installed Phaser version and source/API location when an exact behavior drives a decision.
 - Answer in the user's language while keeping identifiers unchanged.

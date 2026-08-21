@@ -53,7 +53,9 @@ Text choices:
 - `DynamicBitmapText`: per-glyph callback every frame; use only when required.
 - Load browser fonts before creating layout-sensitive Text. Phaser does not make a font usable merely because an asset URL exists.
 
-Use NineSlice/Graphics/Image/BitmapText for reusable game controls. Define states for idle, hover, pressed, disabled, focus, selected, loading, and error. Keep layout in one responsive owner rather than scattering coordinates through callbacks.
+Use NineSlice/Graphics/Image/BitmapText for reusable game controls. Define states for idle, hover, pressed, disabled, focus, selected, loading, and error. Keep layout in one responsive owner rather than scattering coordinates through callbacks. For visible HUD/menu composition, source-art slicing, `NineSlice` constraints, and screenshot-crop acceptance, read [game-ui-nine-slice.md](game-ui-nine-slice.md).
+
+Treat visible game UI as part of the Phaser art direction. Starter DOM controls may remain as a synchronized semantic mirror, but a generic title bar, stat strip, card layout, or system-style button row is not a finished game interface unless the game's fiction calls for it.
 
 For DOMElement, enable `dom.createContainer`, provide a sized parent, and test ScaleManager, fullscreen, CSS transforms, focus, pointer routing, and teardown. DOM elements and canvas Game Objects occupy different rendering/accessibility systems.
 
@@ -139,4 +141,3 @@ Keep serializable state outside the custom Game Object. Expose explicit `bind(mo
 - Destroy feature objects when lifetime ends; remove global/external listeners separately.
 - Do not keep Game Object references in global DataManager, module singletons, or stale UI closures after Scene restart.
 - Test pointer behavior after object pooling, reparenting, visibility changes, Camera changes, and responsive resize.
-

@@ -35,7 +35,7 @@ test('the packaged skill has one entry and a complete routed official reference 
   assert.equal(report.summary.errors, 0);
   assert.equal(report.summary.checks.find((check) => check.name === 'single-entry').value, 1);
   assert.equal(report.summary.checks.find((check) => check.name === 'official-topics').value, 28);
-  assert.equal(report.summary.checks.find((check) => check.name === 'gameplay-presets').value, 7);
+  assert.equal(report.summary.checks.find((check) => check.name === 'gameplay-presets').value, 8);
   assert.equal(report.summary.checks.find((check) => check.name === 'preset-quality-fields').value, 18);
 });
 

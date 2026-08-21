@@ -52,6 +52,7 @@ Use pack files for authored catalogs and Scene payload packs for files required 
 - Use `load.image` for one frame.
 - Use `load.spritesheet` for a regular fixed-size frame grid and numeric frames.
 - Use `load.atlas`/multi-atlas for packed frames, named animation frames, trim/rotation metadata, and batching.
+- Keep `NineSlice` frames untrimmed and unrotated. Phaser 4.2.1 can read TexturePacker `scale9Borders` from JSON Array/Hash atlases, but trimmed frames are unsupported for nine-slice rendering.
 - Use `load.tilemapTiledJSON` with an image loaded separately for Tiled maps.
 - Supply audio format alternatives appropriate to the browser matrix.
 - Load bitmap fonts before constructing BitmapText.
@@ -131,6 +132,6 @@ if (!this.anims.exists('player.walk')) {
 - Record download, decode, GPU upload/first render, and Scene-ready milestones separately.
 - Verify texture memory and cache counts across repeated level transitions.
 - Test atlas trim/origin, animation frame names, resolution variants, compressed texture fallbacks, audio alternatives, and font readiness.
+- For UI atlases, test nine-slice metadata, fixed-corner preservation, edge sampling, padding/extrusion, and smallest/largest rendered panel sizes. Use [game-ui-nine-slice.md](game-ui-nine-slice.md) when source art must be cut or visually accepted.
 - Sanitize or constrain user-provided SVG/HTML/data and bound file size/dimensions before decode.
 - Respect browser autoplay and CORS; successful download does not prove playable audio or readable canvas output.
-

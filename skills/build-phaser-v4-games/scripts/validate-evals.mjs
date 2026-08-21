@@ -29,6 +29,23 @@ for (const item of evals.evals) {
   atomicExpectationCount += item.expectations.length;
 }
 
+const gameUiEval = evals.evals.find((item) => item.prompt.includes('untrimmed 96x96 RGBA panel texture'));
+if (!gameUiEval) fail('A realistic game-native UI and nine-slice capability eval is required');
+for (const evidence of [
+  'inside the Phaser canvas',
+  'Phaser NineSlice',
+  'setSize',
+  'trimmed atlas frames',
+  'slice manifest',
+  'size previews',
+  'desktop canvas UI crops',
+  'semantic DOM controls',
+]) {
+  if (!gameUiEval.expectations.some((expectation) => expectation.includes(evidence))) {
+    fail(`Game UI eval does not require ${evidence}`);
+  }
+}
+
 if (atomicExpectationCount < 150) fail('At least 150 atomic capability expectations are required');
 
 const triggers = JSON.parse(await readFile(path.join(root, 'evals', 'trigger-evals.json'), 'utf8'));
@@ -38,6 +55,12 @@ const negative = triggers.filter((item) => item.should_trigger === false).length
 if (positive < 8 || negative < 8) fail('Trigger evals need at least eight positive and eight negative cases');
 if (triggers.some((item) => typeof item.query !== 'string' || item.query.length < 60)) fail('Trigger queries must be realistic and detailed');
 if (triggers.some((item) => typeof item.should_trigger !== 'boolean')) fail('Every trigger query needs a boolean should_trigger');
+if (!triggers.some((item) => item.should_trigger === true && item.query.includes('game-native Canvas UI'))) {
+  fail('Trigger evals need a positive Phaser game UI case');
+}
+if (!triggers.some((item) => item.should_trigger === false && item.query.includes('standalone PNG'))) {
+  fail('Trigger evals need a negative engine-independent image slicing case');
+}
 
 const routing = JSON.parse(await readFile(path.join(root, 'evals', 'routing-evals.json'), 'utf8'));
 if (routing.skill_name !== 'build-phaser-v4-games') fail('routing-evals.skill_name does not match the skill');
@@ -59,6 +82,10 @@ for (const item of routing.evals) {
 }
 for (const topic of manifestTopics) {
   if (!routedTopics.has(topic)) fail(`Official topic lacks a routing eval: ${topic}`);
+}
+const spriteRoute = routing.evals.find((item) => item.topic === 'sprites-and-images');
+if (!spriteRoute?.core_references.includes('game-ui-nine-slice.md')) {
+  fail('Sprites and images routing must include the game UI nine-slice reference');
 }
 
 console.log(`Validated ${evals.evals.length} capability evals with ${atomicExpectationCount} atomic expectations, ${routing.evals.length} routing evals, and ${triggers.length} trigger evals (${positive} positive, ${negative} negative).`);

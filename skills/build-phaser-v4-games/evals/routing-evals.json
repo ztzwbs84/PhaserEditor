@@ -109,8 +109,8 @@
     },
     {
       "topic": "sprites-and-images",
-      "query": "Choose Phaser 4 Image versus Sprite for textured objects, then configure frames, origin, crop, tint, blend mode, depth, bounds, and pooling behavior.",
-      "core_references": ["gameobjects-input-ui.md"]
+      "query": "Build a Phaser 4 WebGL game HUD from an untrimmed atlas frame using NineSlice, measured fixed borders, tiled or stretched centers, responsive resizing, image crops, named icon frames, tint, depth, input bounds, and pixel-level visual acceptance.",
+      "core_references": ["gameobjects-input-ui.md", "game-ui-nine-slice.md", "assets-textures-animations.md"]
     },
     {
       "topic": "text-and-bitmaptext",

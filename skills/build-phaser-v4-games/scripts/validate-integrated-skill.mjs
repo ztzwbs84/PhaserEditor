@@ -117,6 +117,8 @@ async function main() {
     'assets/presets.json',
     'scripts/create-phaser-game.mjs',
     'scripts/query-phaser-api.mjs',
+    'references/game-ui-nine-slice.md',
+    'scripts/slice-game-ui.py',
     'scripts/validate-integrated-skill.mjs',
   ];
   for (const route of requiredRoutes) {
@@ -125,6 +127,18 @@ async function main() {
   for (const token of ['--idea', 'selectPresetFromIdea', 'matchedTerms', "method: 'idea'", 'ambiguous between', 'does not unambiguously match']) {
     if (!generatorSource.includes(token)) errors.push(`Project generator lacks idea-selection contract token: ${token}`);
   }
+
+  const gameUiReferenceFile = path.join(skillRoot, 'references', 'game-ui-nine-slice.md');
+  const gameUiReference = await readFile(gameUiReferenceFile, 'utf8');
+  for (const token of ['Phaser.WEBGL', 'setSize', 'scale9Borders', 'untrimmed', 'slice-game-ui.py', '1:1', 'generic website']) {
+    if (!gameUiReference.includes(token)) errors.push(`Game UI reference lacks required contract: ${token}`);
+  }
+  const imageSlicingScript = await readFile(path.join(skillRoot, 'scripts', 'slice-game-ui.py'), 'utf8');
+  for (const token of ['fixed_corners_match', 'scale9Borders', 'untrimmedFrameRequired', 'visualReviewRequired', 'Output directory must be empty']) {
+    if (!imageSlicingScript.includes(token)) errors.push(`Game UI slicing helper lacks required contract: ${token}`);
+  }
+  checks.push({ name: 'game-ui-reference', value: 1 });
+  checks.push({ name: 'game-ui-slicing-helper', value: 1 });
 
   const assetsRoot = path.join(skillRoot, 'assets');
   const catalogFile = path.join(assetsRoot, 'presets.json');

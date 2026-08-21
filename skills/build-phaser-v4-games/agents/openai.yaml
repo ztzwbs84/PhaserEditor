@@ -1,4 +1,4 @@
 interface:
   display_name: "Phaser 4 Game Studio"
-  short_description: "Create and ship complete Phaser 4 games"
-  default_prompt: "Use $build-phaser-v4-games to turn my idea into a complete playable Phaser 4 game and verify it in the browser."
+  short_description: "Create polished Phaser 4 games with game-native UI"
+  default_prompt: "Use $build-phaser-v4-games to turn my idea into a complete playable Phaser 4 game with game-native UI and verify it in the browser."

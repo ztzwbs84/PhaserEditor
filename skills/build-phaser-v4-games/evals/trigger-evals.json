@@ -68,6 +68,10 @@
     "should_trigger": true
   },
   {
+    "query": "Redesign this Phaser 4 inventory, pause menu, and HUD as game-native Canvas UI using the supplied panel PNG and icon atlas, including measured nine-slice cuts, responsive mobile layout, accessible controls, and screenshot-crop verification.",
+    "should_trigger": true
+  },
+  {
     "query": "Optimize a PixiJS v8 inventory with ParticleContainer, Assets bundles, federated pointer events, RenderLayers, and an OffscreenCanvas worker renderer.",
     "should_trigger": false
   },
@@ -81,6 +85,10 @@
   },
   {
     "query": "Generate a transparent pixel-art sprite sheet with eight walking directions and four attack frames per direction; no engine code or runtime integration is needed.",
+    "should_trigger": false
+  },
+  {
+    "query": "Cut this standalone PNG into nine equal image files for a print-layout handoff; do not create Phaser code, a browser game, runtime UI, interaction, or visual browser tests.",
     "should_trigger": false
   },
   {
