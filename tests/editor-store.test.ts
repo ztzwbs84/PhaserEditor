@@ -152,6 +152,30 @@ describe('editor lifecycle store', () => {
     expect(useEditorStore.getState().notices.some(({ message }) => message.includes('installing dependencies'))).toBe(true)
   })
 
+  it('removes a project from recents without deleting its files', async () => {
+    const removeRecent = vi.spyOn(window.editorApi.project, 'removeRecent')
+
+    expect(useEditorStore.getState().recentProjects.some((project) => project.path === root)).toBe(true)
+    await expect(useEditorStore.getState().removeRecentProject(root)).resolves.toBe(true)
+
+    expect(removeRecent).toHaveBeenCalledWith(root)
+    expect(useEditorStore.getState().recentProjects.some((project) => project.path === root)).toBe(false)
+    expect(await window.editorApi.fileSystem.stat(packagePath)).toMatchObject({ ok: true })
+    expect(useEditorStore.getState().notices.at(-1)?.message).toBe('Removed browser-demo from recent projects')
+  })
+
+  it('keeps a recent project when removing it fails', async () => {
+    vi.spyOn(window.editorApi.project, 'removeRecent').mockResolvedValue({
+      ok: false,
+      error: { code: 'ACCESS_DENIED', message: 'Recent projects could not be updated.' }
+    })
+
+    await expect(useEditorStore.getState().removeRecentProject(root)).resolves.toBe(false)
+
+    expect(useEditorStore.getState().recentProjects.some((project) => project.path === root)).toBe(true)
+    expect(useEditorStore.getState().notices.at(-1)?.message).toBe('Recent projects could not be updated.')
+  })
+
   it('creates, opens, edits, conflict-checks, and overwrites a visual scene', async () => {
     const document = await useEditorStore.getState().createScene(`${root}\\assets\\Scenes`, 'LevelOne')
     expect(document).toMatchObject({ kind: 'scene', dirty: false, readOnly: false })

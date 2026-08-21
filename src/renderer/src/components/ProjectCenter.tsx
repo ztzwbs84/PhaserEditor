@@ -1,16 +1,50 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Clock3, FolderOpen, Gamepad2, MoreHorizontal, Plus, Search, X } from 'lucide-react'
+import { Clock3, FolderMinus, FolderOpen, Gamepad2, MoreHorizontal, Plus, Search, X } from 'lucide-react'
+import type { ProjectDescriptor } from '@phaser-editor/contracts'
 import { useEditorStore } from '../store/editor-store'
+
+interface ProjectMenuState {
+  project: ProjectDescriptor
+  x: number
+  y: number
+}
 
 export function ProjectCenter(): React.JSX.Element {
   const recent = useEditorStore((state) => state.recentProjects)
   const openProject = useEditorStore((state) => state.openProject)
   const createProject = useEditorStore((state) => state.createProject)
+  const removeRecentProject = useEditorStore((state) => state.removeRecentProject)
   const [query, setQuery] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
   const [openPath, setOpenPath] = useState<string | null>(null)
   const [selectedPath, setSelectedPath] = useState<string | null>(null)
+  const [projectMenu, setProjectMenu] = useState<ProjectMenuState | null>(null)
+  const [removeTarget, setRemoveTarget] = useState<ProjectDescriptor | null>(null)
   const filtered = useMemo(() => recent.filter((project) => `${project.name} ${project.path}`.toLocaleLowerCase().includes(query.toLocaleLowerCase())), [query, recent])
+
+  useEffect(() => {
+    if (!projectMenu) return
+    const closeMenu = (): void => setProjectMenu(null)
+    const closeMenuOnEscape = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') closeMenu()
+    }
+    window.addEventListener('pointerdown', closeMenu)
+    window.addEventListener('keydown', closeMenuOnEscape)
+    return () => {
+      window.removeEventListener('pointerdown', closeMenu)
+      window.removeEventListener('keydown', closeMenuOnEscape)
+    }
+  }, [projectMenu])
+
+  const showProjectMenu = (project: ProjectDescriptor, x: number, y: number): void => {
+    const menuWidth = 230
+    const menuHeight = 42
+    setProjectMenu({
+      project,
+      x: Math.max(8, Math.min(x, window.innerWidth - menuWidth - 8)),
+      y: Math.max(8, Math.min(y, window.innerHeight - menuHeight - 8))
+    })
+  }
 
   return (
     <div className="project-center">
@@ -33,21 +67,70 @@ export function ProjectCenter(): React.JSX.Element {
           <Search size={16} />
           <input aria-label="Search projects" placeholder="Search projects" value={query} onChange={(event) => setQuery(event.target.value)} />
         </div>
-        <div className="project-table" role="table" aria-label="Recent Phaser projects">
+        <div className="project-table" role="grid" aria-label="Recent Phaser projects">
           <div className="project-row project-table-header" role="row">
-            <span>Name</span><span>Modified</span><span>Editor version</span><span />
+            <span role="columnheader">Name</span><span role="columnheader">Modified</span><span role="columnheader">Editor version</span><span role="columnheader" aria-label="Actions" />
           </div>
           {filtered.map((project) => (
-            <button key={project.path} className={`project-row${selectedPath === project.path ? ' selected' : ''}`} role="row" aria-selected={selectedPath === project.path} onDoubleClick={() => void openProject(project.path)} onClick={() => setSelectedPath(project.path)}>
-              <span className="project-name"><span className="project-icon"><Gamepad2 size={18} /></span><span><strong>{project.name}</strong><small>{project.path}</small></span></span>
-              <span className="muted"><Clock3 size={14} />{formatRelative(project.lastOpenedAt)}</span>
-              <span>{project.phaserVersion ?? 'Unknown'}</span>
-              <span><MoreHorizontal size={17} /></span>
-            </button>
+            <div
+              key={project.path}
+              className={`project-row${selectedPath === project.path ? ' selected' : ''}`}
+              role="row"
+              aria-selected={selectedPath === project.path}
+              tabIndex={0}
+              onDoubleClick={(event) => { if (event.target === event.currentTarget || !(event.target as HTMLElement).closest('.project-menu-trigger')) void openProject(project.path) }}
+              onClick={() => setSelectedPath(project.path)}
+              onKeyDown={(event) => {
+                if (event.target !== event.currentTarget) return
+                if (event.key === 'Enter') void openProject(project.path)
+                if (event.key === ' ') {
+                  event.preventDefault()
+                  setSelectedPath(project.path)
+                }
+              }}
+              onContextMenu={(event) => {
+                event.preventDefault()
+                setSelectedPath(project.path)
+                showProjectMenu(project, event.clientX, event.clientY)
+              }}
+            >
+              <span className="project-name" role="cell"><span className="project-icon"><Gamepad2 size={18} /></span><span><strong>{project.name}</strong><small>{project.path}</small></span></span>
+              <span className="muted" role="cell"><Clock3 size={14} />{formatRelative(project.lastOpenedAt)}</span>
+              <span role="cell">{project.phaserVersion ?? 'Unknown'}</span>
+              <span className="project-actions-cell" role="cell">
+                <button
+                  type="button"
+                  className={`icon-button compact project-menu-trigger${projectMenu?.project.path === project.path ? ' active' : ''}`}
+                  title={`Project actions for ${project.name}`}
+                  aria-label={`Project actions for ${project.name}`}
+                  aria-haspopup="menu"
+                  aria-expanded={projectMenu?.project.path === project.path}
+                  onDoubleClick={(event) => event.stopPropagation()}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    setSelectedPath(project.path)
+                    const bounds = event.currentTarget.getBoundingClientRect()
+                    showProjectMenu(project, bounds.right - 230, bounds.bottom + 4)
+                  }}
+                ><MoreHorizontal size={17} /></button>
+              </span>
+            </div>
           ))}
           {filtered.length === 0 && <div className="empty-projects"><Gamepad2 size={28} /><span>No projects found</span></div>}
         </div>
       </section>
+      {projectMenu && <div
+        className="context-menu project-center-menu"
+        role="menu"
+        aria-label={`Actions for ${projectMenu.project.name}`}
+        style={{ left: projectMenu.x, top: projectMenu.y }}
+        onPointerDown={(event) => event.stopPropagation()}
+      >
+        <button role="menuitem" className="danger" autoFocus onClick={() => {
+          setRemoveTarget(projectMenu.project)
+          setProjectMenu(null)
+        }}><FolderMinus size={14} />Remove from recent projects</button>
+      </div>}
       {openPath !== null && <OpenProjectDialog initialPath={openPath} onClose={() => setOpenPath(null)} onOpen={async (path) => {
         const opened = await openProject(path)
         if (opened) setOpenPath(null)
@@ -56,6 +139,45 @@ export function ProjectCenter(): React.JSX.Element {
         const created = await createProject(request)
         if (created) setCreateOpen(false)
       }} />}
+      {removeTarget && <RemoveProjectDialog project={removeTarget} onClose={() => setRemoveTarget(null)} onRemove={async () => {
+        const removed = await removeRecentProject(removeTarget.path)
+        if (removed && selectedPath === removeTarget.path) setSelectedPath(null)
+        return removed
+      }} />}
+    </div>
+  )
+}
+
+function RemoveProjectDialog({ project, onClose, onRemove }: {
+  project: ProjectDescriptor
+  onClose(): void
+  onRemove(): Promise<boolean>
+}): React.JSX.Element {
+  const [busy, setBusy] = useState(false)
+
+  const remove = async (): Promise<void> => {
+    if (busy) return
+    setBusy(true)
+    if (await onRemove()) onClose()
+    else setBusy(false)
+  }
+
+  return (
+    <div className="modal-backdrop" role="presentation" onKeyDown={(event) => { if (event.key === 'Escape' && !busy) onClose() }} onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onClose() }}>
+      <div className="dialog remove-project-dialog" role="dialog" aria-modal="true" aria-labelledby="remove-project-title" aria-describedby="remove-project-description">
+        <div className="dialog-header">
+          <div><h2 id="remove-project-title">Remove project?</h2><p>{project.name}</p></div>
+          <button className="icon-button" title="Close" disabled={busy} onClick={onClose}><X size={16} /></button>
+        </div>
+        <div className="remove-project-copy" id="remove-project-description">
+          <p>This only removes the project from the Projects list. Files on disk will not be deleted.</p>
+          <small title={project.path}>{project.path}</small>
+        </div>
+        <div className="dialog-footer">
+          <button className="button" autoFocus disabled={busy} onClick={onClose}>Cancel</button>
+          <button className="button danger-action" disabled={busy} onClick={() => void remove()}><FolderMinus size={15} />{busy ? 'Removing...' : 'Remove project'}</button>
+        </div>
+      </div>
     </div>
   )
 }

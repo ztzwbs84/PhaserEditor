@@ -33,6 +33,7 @@ interface EditorState {
   initialize(): Promise<void>
   openProject(path?: string): Promise<boolean>
   createProject(request: ProjectCreateRequest): Promise<boolean>
+  removeRecentProject(path: string): Promise<boolean>
   createScene(parent: string, name: string): Promise<EditorDocument | null>
   closeProject(): Promise<boolean>
   openDocument(path: string): Promise<EditorDocument | null>
@@ -107,6 +108,21 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set({ project: result.value, recentProjects: recent.ok ? recent.value : get().recentProjects, documents: {}, selectedPath: null })
     if (result.value.issue) get().notify('warning', result.value.issue)
     get().notify('success', `Created ${result.value.name}`)
+    return true
+  },
+
+  async removeRecentProject(path) {
+    const project = get().recentProjects.find((item) => item.path === path)
+    const result = await window.editorApi.project.removeRecent(path)
+    if (!result.ok) {
+      get().notify('error', result.error.message)
+      return false
+    }
+    set((state) => ({
+      recentProjects: result.value,
+      settings: state.settings ? { ...state.settings, recentProjects: result.value } : null
+    }))
+    get().notify('success', `Removed ${project?.name ?? 'project'} from recent projects`)
     return true
   },
 

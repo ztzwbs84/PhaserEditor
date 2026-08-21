@@ -11,10 +11,18 @@ test.beforeAll(async () => {
 })
 
 test('project center boots through the secure preload bridge', async () => {
+  const removableRoot = path.resolve('test-results', 'project-center-removable')
+  await fs.mkdir(removableRoot, { recursive: true })
+  await fs.writeFile(path.join(removableRoot, 'package.json'), JSON.stringify({
+    name: 'removable-project',
+    dependencies: { phaser: '4.2.1' }
+  }), 'utf8')
   const application = await launchEditor('project-center')
   try {
     const page = await application.firstWindow()
     await resizeWindow(application, 1280, 720)
+    await expect(page.evaluate((projectPath) => window.editorApi.project.open(projectPath), removableRoot)).resolves.toMatchObject({ ok: true })
+    await page.reload()
     await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Open project' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'New project' })).toBeVisible()
@@ -26,6 +34,22 @@ test('project center boots through the secure preload bridge', async () => {
     await page.getByLabel('Project folder').fill('I:\\Phaser\\examples-master\\examples-master')
     await page.screenshot({ path: path.join(screenshotRoot, 'phase-2', 'open-project-dialog-1280x720.png') })
     await page.getByRole('button', { name: 'Cancel' }).click()
+
+    const removableRow = page.getByRole('row').filter({ hasText: 'removable-project' })
+    await removableRow.getByRole('button', { name: 'Project actions for removable-project' }).click()
+    await page.screenshot({ path: path.join(screenshotRoot, 'phase-2', 'project-actions-menu-1280x720.png') })
+    await page.getByRole('menuitem', { name: 'Remove from recent projects' }).click()
+    const removeDialog = page.getByRole('dialog', { name: 'Remove project?' })
+    await expect(removeDialog).toContainText('Files on disk will not be deleted.')
+    await page.screenshot({ path: path.join(screenshotRoot, 'phase-2', 'remove-project-dialog-1280x720.png') })
+    await removeDialog.getByRole('button', { name: 'Cancel' }).click()
+    await expect(removableRow).toBeVisible()
+
+    await removableRow.click({ button: 'right' })
+    await page.getByRole('menuitem', { name: 'Remove from recent projects' }).click()
+    await page.getByRole('dialog', { name: 'Remove project?' }).getByRole('button', { name: 'Remove project' }).click()
+    await expect(removableRow).toHaveCount(0)
+    await expect(fs.stat(path.join(removableRoot, 'package.json'))).resolves.toBeDefined()
 
     await page.getByRole('button', { name: 'New project' }).click()
     await expect(page.getByRole('dialog', { name: 'Create Phaser project' })).toBeVisible()

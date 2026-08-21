@@ -1868,13 +1868,68 @@ button:disabled {
   text-align: left;
 }
 
-button.project-row:hover {
+.project-row:not(.project-table-header):hover {
   background: var(--bg-hover);
 }
 
-button.project-row.selected {
+.project-row.selected {
   background: var(--selection);
   box-shadow: inset 2px 0 var(--accent);
+}
+
+.project-row[tabindex] {
+  cursor: default;
+}
+
+.project-row[tabindex]:focus-visible {
+  outline: 1px solid var(--accent-strong);
+  outline-offset: -2px;
+}
+
+.project-actions-cell {
+  display: grid;
+  place-items: center;
+}
+
+.project-menu-trigger {
+  border-color: transparent;
+  background: transparent;
+}
+
+.project-center-menu {
+  width: 230px;
+}
+
+.remove-project-dialog {
+  width: min(460px, calc(100vw - 40px));
+}
+
+.remove-project-copy {
+  padding: 17px;
+}
+
+.remove-project-copy p {
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+
+.remove-project-copy small {
+  display: block;
+  overflow: hidden;
+  color: var(--text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.button.danger-action,
+.button.danger-action:hover:not(:disabled) {
+  border-color: var(--red);
+  background: var(--red);
+  color: #fff;
+}
+
+.button.danger-action:hover:not(:disabled) {
+  filter: brightness(1.12);
 }
 
 .project-table-header {
@@ -4277,11 +4332,11 @@ button.project-row.selected {
   font-size: 11px;
 }
 
-button.project-row:hover {
+.project-row:not(.project-table-header):hover {
   background: #232323;
 }
 
-button.project-row.selected {
+.project-row.selected {
   background: #2d4050;
   box-shadow: inset 2px 0 #5b9fc8;
 }
