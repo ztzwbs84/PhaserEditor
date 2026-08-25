@@ -1,0 +1,6 @@
+export { analyzeProject, analyzeSourceText } from './analyze.js'
+export { parseCliArgs } from './args.js'
+export { convertProject } from './convert.js'
+export { installWechatRuntime } from './runtime/wechat-runtime.js'
+export { transformPhaserSource } from './transform.js'
+export type * from './types.js'
