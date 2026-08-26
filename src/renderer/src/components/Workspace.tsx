@@ -13,6 +13,7 @@ import { PalettePanel } from './panels/PalettePanel'
 import { DocumentHost } from './editors/DocumentHost'
 import { WelcomePanel } from './panels/WelcomePanel'
 import { PreviewPanel } from './panels/PreviewPanel'
+import { UnityUIPanel } from './panels/UnityUIPanel'
 import { ErrorBoundary } from './common/ErrorBoundary'
 import { LazyPluginSurface } from './common/LazyPluginSurface'
 import { panelContributionRegistry } from '../lib/contribution-registry'
@@ -203,6 +204,7 @@ export function Workspace(): React.JSX.Element {
           : component === 'console' ? <ConsolePanel />
             : component === 'palette' ? <PalettePanel />
               : component === 'preview' ? <PreviewPanel />
+                : component === 'unity-ui' ? <UnityUIPanel />
                 : component === 'document' && config.path ? <DocumentHost path={config.path} />
                   : pluginPanelId && pluginPanel
                     ? <LazyPluginSurface name={pluginPanel.value.title} pluginId={pluginPanel.owner} contributionId={pluginPanelId} load={(retry) => pluginContributionRuntime.loadPanel(pluginPanelId, retry)} />

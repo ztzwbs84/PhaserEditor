@@ -199,6 +199,79 @@ export interface PaletteGroup {
   colors: PaletteColor[]
 }
 
+export interface UnityUIConfiguration {
+  prefabRoot: string
+  uiRawRoot: string
+  referenceResolution: { x: number; y: number }
+  lastPrefabRelativePath?: string
+}
+
+export interface UnityUIPrefabEntry {
+  name: string
+  relativePath: string
+  size: number
+  modifiedAt: number
+}
+
+export interface UnityUIAssetIndexSummary {
+  assetsRoot: string
+  metaFileCount: number
+  uniqueGuidCount: number
+  duplicateGuidCount: number
+}
+
+export interface UnityUIWorkspaceState {
+  configuration: UnityUIConfiguration
+  unityProjectRoot: string
+  assetsRoot: string
+  unityVersion: string | null
+  prefabs: UnityUIPrefabEntry[]
+  assetIndex: UnityUIAssetIndexSummary
+}
+
+export interface UnityUIDiagnostic {
+  severity: 'info' | 'warning' | 'error'
+  code: string
+  message: string
+  sourcePath?: string
+  nodeId?: string
+  componentId?: string
+  propertyPath?: string
+  details?: Record<string, unknown>
+}
+
+export interface UnityUIPreviewRequest {
+  relativePath: string
+  requestId: string
+}
+
+export interface UnityUIPreviewResult {
+  requestId: string
+  stale: boolean
+  prefab: UnityUIPrefabEntry
+  previewUrl: string
+  outputDirectory: string
+  durationMs: number
+  copiedResources: number
+  statistics: {
+    nodeCount: number
+    resourceCount: number
+    componentCounts: Record<string, number>
+    warningCount: number
+    errorCount: number
+    nestedPrefabCount: number
+  }
+  diagnostics: UnityUIDiagnostic[]
+}
+
+export interface UnityUIExportResult {
+  outputDirectory: string
+  previewHtml: string
+  phaserHtml: string
+  documentJson: string
+  reportJson: string
+}
+
 export interface EditorSettings {
   theme: 'dark' | 'light'
   layout: unknown | null
@@ -209,6 +282,7 @@ export interface EditorSettings {
   shortcuts: Record<string, string>
   enabledPlugins: string[]
   phaserSourceRoot: string
+  unityUIConfigurations: Record<string, UnityUIConfiguration>
 }
 
 export interface PluginApi {
@@ -257,6 +331,15 @@ export interface EditorApi {
     hide(): Promise<Result<true>>
     load(url: string): Promise<Result<true>>
   }
+  unityUI: {
+    configure(configuration: UnityUIConfiguration): Promise<Result<UnityUIWorkspaceState>>
+    refreshPrefabs(): Promise<Result<UnityUIWorkspaceState>>
+    rebuildAssetIndex(): Promise<Result<UnityUIWorkspaceState>>
+    preview(request: UnityUIPreviewRequest): Promise<Result<UnityUIPreviewResult>>
+    exportCurrent(outputRoot: string): Promise<Result<UnityUIExportResult>>
+    showPreview(bounds: { x: number; y: number; width: number; height: number }): Promise<Result<true>>
+    hidePreview(): Promise<Result<true>>
+  }
   settings: {
     get(): Promise<Result<EditorSettings>>
     update(patch: Partial<EditorSettings>): Promise<Result<EditorSettings>>
@@ -303,6 +386,13 @@ export const ipcChannels = {
   previewShow: 'preview:show',
   previewHide: 'preview:hide',
   previewLoad: 'preview:load',
+  unityUIConfigure: 'unity-ui:configure',
+  unityUIRefreshPrefabs: 'unity-ui:refresh-prefabs',
+  unityUIRebuildAssetIndex: 'unity-ui:rebuild-asset-index',
+  unityUIPreview: 'unity-ui:preview',
+  unityUIExportCurrent: 'unity-ui:export-current',
+  unityUIShowPreview: 'unity-ui:show-preview',
+  unityUIHidePreview: 'unity-ui:hide-preview',
   settingsGet: 'settings:get',
   settingsUpdate: 'settings:update',
   dialogSelectDirectory: 'dialog:select-directory',

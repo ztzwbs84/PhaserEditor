@@ -40,6 +40,15 @@ const api: EditorApi = {
     hide: () => ipcRenderer.invoke(ipcChannels.previewHide),
     load: (url) => ipcRenderer.invoke(ipcChannels.previewLoad, url)
   },
+  unityUI: {
+    configure: (configuration) => ipcRenderer.invoke(ipcChannels.unityUIConfigure, configuration),
+    refreshPrefabs: () => ipcRenderer.invoke(ipcChannels.unityUIRefreshPrefabs),
+    rebuildAssetIndex: () => ipcRenderer.invoke(ipcChannels.unityUIRebuildAssetIndex),
+    preview: (request) => ipcRenderer.invoke(ipcChannels.unityUIPreview, request),
+    exportCurrent: (outputRoot) => ipcRenderer.invoke(ipcChannels.unityUIExportCurrent, outputRoot),
+    showPreview: (bounds) => ipcRenderer.invoke(ipcChannels.unityUIShowPreview, bounds),
+    hidePreview: () => ipcRenderer.invoke(ipcChannels.unityUIHidePreview)
+  },
   settings: {
     get: () => ipcRenderer.invoke(ipcChannels.settingsGet),
     update: (patch) => ipcRenderer.invoke(ipcChannels.settingsUpdate, patch)

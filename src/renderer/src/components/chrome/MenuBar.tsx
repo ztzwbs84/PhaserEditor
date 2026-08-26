@@ -50,6 +50,8 @@ const menus: Array<{ label: string; items: MenuItem[] }> = [
     { label: 'Open in Browser', command: 'run.openExternal' }
   ] },
   { label: 'Tools', items: [
+    { label: 'Unity UGUI Preview', command: 'tools.unityUI' },
+    { label: '', separator: true },
     { label: 'Palette', command: 'view.palette' },
     { label: 'Plugins...', command: 'tools.plugins' }
   ] },
@@ -197,6 +199,7 @@ function registerCommands(context: {
       if (url) await window.editorApi.runner.openExternal(url)
     } }),
     commandRegistry.register({ id: 'tools.plugins', title: 'Plugins', execute: () => useEditorStore.getState().setPluginsOpen(true) }),
+    commandRegistry.register({ id: 'tools.unityUI', title: 'Unity UGUI Preview', execute: () => context.workspace.showPanel('unity-ui', 'Unity UGUI', 'center') }),
     commandRegistry.register({ id: 'help.source', title: 'Phaser Source Reference', execute: () => context.notify('info', `Phaser source: ${useEditorStore.getState().settings?.phaserSourceRoot}`) }),
     commandRegistry.register({ id: 'help.about', title: 'About', execute: () => context.notify('info', 'Phaser Editor 0.1.0 · Phaser 4.2.1') })
   ]

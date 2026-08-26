@@ -9,7 +9,8 @@ import type {
   ProjectCreateRequest,
   ProjectDescriptor,
   Result,
-  RunSession
+  RunSession,
+  UnityUIWorkspaceState
 } from '@phaser-editor/contracts'
 import { ANIMATION_ASSET_FORMAT, CURRENT_ANIMATION_ASSET_VERSION, createSceneDocument, createSceneTransform, serializeAnimationAsset, serializeSceneDocument, type AnimationAsset, type SceneDocument } from '@phaser-editor/contracts'
 import { toPackageName } from '../../../shared/project-name'
@@ -53,10 +54,12 @@ let settings: EditorSettings = {
     'workspace.quickOpen': 'Ctrl+P'
   },
   enabledPlugins: [],
-  phaserSourceRoot: 'I:\\Phaser\\phaser'
+  phaserSourceRoot: 'I:\\Phaser\\phaser',
+  unityUIConfigurations: {}
 }
 
 let runSession: RunSession = { id: 'browser-acceptance', status: 'idle' }
+let unityUIWorkspace: UnityUIWorkspaceState | null = null
 const runListeners = new Set<(session: RunSession) => void>()
 const logListeners = new Set<(entry: LogEntry) => void>()
 const fileListeners = new Set<(event: FileChangeEvent) => void>()
@@ -187,6 +190,45 @@ export function installBrowserMock(): void {
       show: async () => success(true),
       hide: async () => success(true),
       load: async () => success(true)
+    },
+    unityUI: {
+      configure: async (configuration) => {
+        if (!configuration.prefabRoot.trim() || !configuration.uiRawRoot.trim()) return failure('INVALID_INPUT', 'Unity UI source directories are required.')
+        unityUIWorkspace = {
+          configuration,
+          unityProjectRoot: 'G:\\MockUnity',
+          assetsRoot: 'G:\\MockUnity\\Assets',
+          unityVersion: '2022.3.20f1',
+          prefabs: [
+            { name: 'Inventory.prefab', relativePath: 'BackPack/Inventory.prefab', size: 2048, modifiedAt: now },
+            { name: 'MainUI.prefab', relativePath: 'MainUI.prefab', size: 1024, modifiedAt: now }
+          ],
+          assetIndex: { assetsRoot: 'G:\\MockUnity\\Assets', metaFileCount: 32, uniqueGuidCount: 30, duplicateGuidCount: 0 }
+        }
+        return success(unityUIWorkspace)
+      },
+      refreshPrefabs: async () => unityUIWorkspace ? success(unityUIWorkspace) : failure('INVALID_INPUT', 'Configure the Unity UI source directories first.'),
+      rebuildAssetIndex: async () => unityUIWorkspace ? success(unityUIWorkspace) : failure('INVALID_INPUT', 'Configure the Unity UI source directories first.'),
+      preview: async (request) => success({
+        requestId: request.requestId,
+        stale: false,
+        prefab: { name: request.relativePath.split('/').pop() ?? request.relativePath, relativePath: request.relativePath, size: 1024, modifiedAt: now },
+        previewUrl: 'unity-ui-preview://local/mock/phaser.html?embedded=1',
+        outputDirectory: 'browser-mock\\unity-ui',
+        durationMs: 24,
+        copiedResources: 3,
+        statistics: { nodeCount: 12, resourceCount: 3, componentCounts: { image: 4, text: 2, button: 1 }, warningCount: 0, errorCount: 0, nestedPrefabCount: 1 },
+        diagnostics: []
+      }),
+      exportCurrent: async (outputRoot) => success({
+        outputDirectory: `${outputRoot}\\MainUI-unity-ui`,
+        previewHtml: `${outputRoot}\\MainUI-unity-ui\\preview.html`,
+        phaserHtml: `${outputRoot}\\MainUI-unity-ui\\phaser.html`,
+        documentJson: `${outputRoot}\\MainUI-unity-ui\\ui.json`,
+        reportJson: `${outputRoot}\\MainUI-unity-ui\\conversion-report.json`
+      }),
+      showPreview: async () => success(true),
+      hidePreview: async () => success(true)
     },
     settings: {
       get: async () => success(settings),

@@ -1,0 +1,25 @@
+{
+  "name": "@phaser-editor/unity-ui-converter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "bin": {
+    "unity-ui-converter": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\""
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "peerDependencies": {
+    "phaser": "^4.2.1"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9"
+  }
+}

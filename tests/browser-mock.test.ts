@@ -62,4 +62,17 @@ describe('browser project bridge', () => {
     expect(conflict).toMatchObject({ ok: false, error: { code: 'CONFLICT' } })
     dispose()
   })
+
+  it('exposes the Unity UI conversion bridge in browser acceptance mode', async () => {
+    vi.stubGlobal('window', {})
+    installBrowserMock()
+    const configured = await window.editorApi.unityUI.configure({
+      prefabRoot: 'G:\\MockUnity\\Assets\\Resources\\UI',
+      uiRawRoot: 'G:\\MockUnity\\Assets\\UIRaw',
+      referenceResolution: { x: 750, y: 1334 }
+    })
+    expect(configured.ok && configured.value.prefabs.map((entry) => entry.relativePath)).toEqual(['BackPack/Inventory.prefab', 'MainUI.prefab'])
+    const preview = await window.editorApi.unityUI.preview({ relativePath: 'MainUI.prefab', requestId: 'browser-preview' })
+    expect(preview).toMatchObject({ ok: true, value: { stale: false, statistics: { nodeCount: 12 } } })
+  })
 })

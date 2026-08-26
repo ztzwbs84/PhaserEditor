@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { readFile } from 'node:fs/promises'
 import {
   app,
   BrowserWindow,
@@ -21,13 +22,17 @@ import { PluginService } from './plugin-service'
 import { settleShutdownTasks } from './shutdown'
 import { resolvePhaserDeclarations } from './code-intelligence-service'
 import { resolveProjectAssetUrl } from '../shared/asset-url'
+import { UnityUIService } from './unity-ui-service'
+import { UnityUIPreviewService } from './unity-ui-preview-service'
+import { resolveUnityUIPreviewUrl, UNITY_UI_PREVIEW_SCHEME } from '../shared/unity-ui-preview-url'
 
 protocol.registerSchemesAsPrivileged([
   {
     scheme: 'phaser-asset',
     privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true }
   },
-  { scheme: 'phaser-plugin', privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } }
+  { scheme: 'phaser-plugin', privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } },
+  { scheme: UNITY_UI_PREVIEW_SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } }
 ])
 
 if (process.env.PHASER_EDITOR_USER_DATA) {
@@ -39,6 +44,8 @@ let previewService: PreviewService | null = null
 let pluginService: PluginService | null = null
 let fileService: FileService | null = null
 let runnerService: RunnerService | null = null
+let unityUIService: UnityUIService | null = null
+let unityUIPreviewService: UnityUIPreviewService | null = null
 let shuttingDown = false
 
 async function bootstrap(): Promise<void> {
@@ -63,6 +70,9 @@ async function bootstrap(): Promise<void> {
     mainWindow?.webContents.send(ipcChannels.runnerLogEvent, entry)
   }
   previewService = new PreviewService(mainWindow, emitLog)
+  unityUIPreviewService = new UnityUIPreviewService(mainWindow)
+  const unityUIPreviewRoot = path.join(app.getPath('userData'), 'unity-ui-cache')
+  unityUIService = new UnityUIService(unityUIPreviewRoot, (url) => unityUIPreviewService!.load(url))
   pluginService = new PluginService(store, path.join(app.getPath('userData'), 'plugins'), pluginHostPath)
   runnerService = new RunnerService(
     projectService,
@@ -82,8 +92,20 @@ async function bootstrap(): Promise<void> {
     if (!filePath || !pluginService?.containsResource(filePath)) return new Response('Forbidden', { status: 403 })
     return net.fetch(pathToFileURL(filePath).toString())
   })
+  protocol.handle(UNITY_UI_PREVIEW_SCHEME, async (request) => {
+    const filePath = resolveUnityUIPreviewUrl(request.url, unityUIPreviewRoot)
+    if (!filePath) return new Response('Forbidden', { status: 403 })
+    try {
+      const content = await readFile(filePath)
+      return new Response(new Uint8Array(content), { headers: { 'Content-Type': previewContentType(filePath) } })
+    } catch (error) {
+      return new Response((error as NodeJS.ErrnoException).code === 'ENOENT' ? 'Not found' : 'Preview file could not be read', {
+        status: (error as NodeJS.ErrnoException).code === 'ENOENT' ? 404 : 500
+      })
+    }
+  })
 
-  registerIpc({ store, projectService, fileService: activeFileService, runner: runnerService, plugins: pluginService })
+  registerIpc({ store, projectService, fileService: activeFileService, runner: runnerService, plugins: pluginService, unityUI: unityUIService })
   await pluginService.activateEnabled()
 
   if (process.env.ELECTRON_RENDERER_URL) {
@@ -114,6 +136,9 @@ function createWindow(): BrowserWindow {
   window.on('closed', () => {
     previewService?.destroy()
     previewService = null
+    unityUIPreviewService?.destroy()
+    unityUIPreviewService = null
+    unityUIService = null
     mainWindow = null
   })
   return window
@@ -125,8 +150,9 @@ function registerIpc(services: {
   fileService: FileService
   runner: RunnerService
   plugins: PluginService
+  unityUI: UnityUIService
 }): void {
-  const { store, projectService, fileService, runner, plugins } = services
+  const { store, projectService, fileService, runner, plugins, unityUI } = services
 
   ipcMain.handle(ipcChannels.projectListRecent, () => asResult(async () => projectService.listRecent()))
   ipcMain.handle(ipcChannels.projectRemoveRecent, (_event, projectPath: string) => asResult(() => projectService.removeRecent(projectPath)))
@@ -181,6 +207,14 @@ function registerIpc(services: {
   ipcMain.handle(ipcChannels.previewHide, () => asResult(() => previewService!.hide()))
   ipcMain.handle(ipcChannels.previewLoad, (_event, url: string) => asResult(() => previewService!.load(url)))
 
+  ipcMain.handle(ipcChannels.unityUIConfigure, (_event, configuration) => asResult(() => unityUI.configure(configuration)))
+  ipcMain.handle(ipcChannels.unityUIRefreshPrefabs, () => asResult(() => unityUI.refreshPrefabs()))
+  ipcMain.handle(ipcChannels.unityUIRebuildAssetIndex, () => asResult(() => unityUI.rebuildAssetIndex()))
+  ipcMain.handle(ipcChannels.unityUIPreview, (_event, request) => asResult(() => unityUI.preview(request)))
+  ipcMain.handle(ipcChannels.unityUIExportCurrent, (_event, outputRoot: string) => asResult(() => unityUI.exportCurrent(outputRoot)))
+  ipcMain.handle(ipcChannels.unityUIShowPreview, (_event, bounds) => asResult(() => unityUIPreviewService!.show(bounds)))
+  ipcMain.handle(ipcChannels.unityUIHidePreview, () => asResult(() => unityUIPreviewService!.hide()))
+
   ipcMain.handle(ipcChannels.settingsGet, () => asResult(async () => store.get()))
   ipcMain.handle(ipcChannels.settingsUpdate, (_event, patch: Partial<EditorSettings>) => asResult(() => store.update(patch)))
   ipcMain.handle(ipcChannels.dialogSelectDirectory, (_event, requestedDefaultPath?: string) => asResult(async () => {
@@ -227,6 +261,9 @@ app.on('before-quit', (event) => {
   shuttingDown = true
   try { previewService?.destroy() } catch { /* Shutdown must continue if a view is already destroyed. */ }
   previewService = null
+  try { unityUIPreviewService?.destroy() } catch { /* Shutdown must continue if a view is already destroyed. */ }
+  unityUIPreviewService = null
+  unityUIService = null
   try { pluginService?.deactivateAll() } catch { /* Shutdown must continue if a plugin host already exited. */ }
   void fileService?.dispose()
   if (!runnerService?.hasActiveProcess()) {
@@ -242,3 +279,25 @@ app.on('activate', () => {
 })
 
 void bootstrap()
+
+function previewContentType(filePath: string): string {
+  const extension = path.extname(filePath).toLocaleLowerCase()
+  return ({
+    '.html': 'text/html; charset=utf-8',
+    '.css': 'text/css; charset=utf-8',
+    '.js': 'text/javascript; charset=utf-8',
+    '.mjs': 'text/javascript; charset=utf-8',
+    '.json': 'application/json; charset=utf-8',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.webp': 'image/webp',
+    '.bmp': 'image/bmp',
+    '.svg': 'image/svg+xml',
+    '.ttf': 'font/ttf',
+    '.otf': 'font/otf',
+    '.woff': 'font/woff',
+    '.woff2': 'font/woff2'
+  } as Record<string, string>)[extension] ?? 'application/octet-stream'
+}

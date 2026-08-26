@@ -7,16 +7,24 @@
   "main": "out/main/index.js",
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "platform/*"
   ],
   "scripts": {
-    "dev": "electron-vite dev",
+    "dev": "npm run unity-ui:build && electron-vite dev",
     "dev:web": "vite --config vite.web.config.ts",
+    "unity-ui:build": "npm run build --workspace @phaser-editor/unity-ui-converter",
+    "unity-ui:scan": "npm run unity-ui:build && node packages/unity-ui-converter/dist/cli.js scan",
+    "unity-ui:bake": "npm run unity-ui:build && node packages/unity-ui-converter/dist/cli.js bake",
+    "unity-ui:batch": "npm run unity-ui:build && node packages/unity-ui-converter/dist/cli.js batch",
+    "unity-ui:validate:batch": "node scripts/validate-unity-ui-batch.mjs",
+    "unity-ui:serve": "vite artifacts/unity-ui --host 127.0.0.1 --port 4175",
+    "wechat:patch": "node platform/wechat-minigame/scripts/run.mjs",
     "build": "npm run typecheck && electron-vite build && node scripts/assert-authoring-chunks.mjs",
     "build:assert-chunks": "node scripts/assert-authoring-chunks.mjs",
     "preview": "electron-vite preview",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "typecheck": "npm run unity-ui:build && npm run build --workspace @phaser-editor/wechat-minigame && tsc --noEmit",
+    "test": "npm run unity-ui:build && vitest run && npm run test --workspace @phaser-editor/wechat-minigame",
     "test:watch": "vitest",
     "test:e2e": "npm run build && playwright test",
     "package:win": "npm run build && electron-builder --win nsis"
@@ -26,6 +34,7 @@
     "@esotericsoftware/spine-webgl": "4.2.119",
     "@monaco-editor/react": "^4.7.0",
     "@phaser-editor/contracts": "0.1.0",
+    "@phaser-editor/unity-ui-converter": "0.1.0",
     "chokidar": "^4.0.3",
     "culori": "^4.0.2",
     "dompurify": "^3.2.6",

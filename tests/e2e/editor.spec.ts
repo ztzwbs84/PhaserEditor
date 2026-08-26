@@ -349,6 +349,78 @@ test('saves, closes, and reopens a visual scene without losing its rendered mode
   }
 })
 
+test('converts and previews a Unity UGUI Prefab inside the editor', async () => {
+  test.setTimeout(90_000)
+  const runId = `unity-ui-${Date.now()}-${process.pid}`
+  const fixtureRoot = path.resolve('test-results', runId)
+  const phaserProject = path.join(fixtureRoot, 'PhaserProject')
+  const unityProject = path.join(fixtureRoot, 'UnityProject')
+  const prefabRoot = path.join(unityProject, 'Assets', 'Resources', 'UI')
+  const uiRawRoot = path.join(unityProject, 'Assets', 'UIRaw')
+  await writeUnityUIFixture(phaserProject, unityProject, prefabRoot, uiRawRoot)
+
+  const application = await launchEditor(runId)
+  try {
+    const page = await application.firstWindow()
+    await resizeWindow(application, 1440, 900)
+    await page.getByRole('button', { name: 'Open project', exact: true }).click()
+    const openDialog = page.getByRole('dialog', { name: 'Open Phaser project' })
+    await openDialog.getByLabel('Project folder').fill(phaserProject)
+    await openDialog.getByRole('button', { name: 'Open project', exact: true }).click()
+    await expect(page.locator('.project-title')).toContainText('unity-ui-e2e')
+
+    await page.getByRole('menubar').getByRole('menuitem', { name: 'Tools', exact: true }).click()
+    await page.getByRole('menuitem', { name: 'Unity UGUI Preview' }).click()
+    await expect(page.getByRole('tab', { name: 'Unity UGUI' })).toBeVisible()
+    await page.getByLabel('Prefab directory').fill(prefabRoot)
+    await page.getByLabel('UIRaw directory').fill(uiRawRoot)
+    await page.getByRole('button', { name: 'Load', exact: true }).click()
+    const prefab = page.getByRole('option', { name: 'Main', exact: true })
+    await expect(prefab).toBeVisible({ timeout: 20_000 })
+    await prefab.click()
+
+    await expect.poll(() => application.evaluate(({ webContents }) => {
+      return webContents.getAllWebContents().some((contents) => contents.getURL().startsWith('unity-ui-preview://local/'))
+    }), { timeout: 30_000 }).toBe(true)
+    const rendered = await application.evaluate(async ({ webContents }) => {
+      const preview = webContents.getAllWebContents().find((contents) => contents.getURL().startsWith('unity-ui-preview://local/'))
+      if (!preview) return null
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      return preview.executeJavaScript(`(async () => {
+        const resource = Object.values(window.__UNITY_UI_PREVIEW__.documents[0].resources).find(item => item.webPath)
+        const response = await fetch(resource.webPath)
+        return {
+          canvas: Boolean(document.querySelector('canvas')),
+          width: document.querySelector('canvas')?.width ?? 0,
+          height: document.querySelector('canvas')?.height ?? 0,
+          resourceStatus: response.status,
+          resourceType: response.headers.get('content-type'),
+          resourceBytes: (await response.arrayBuffer()).byteLength,
+          embeddedLinkHidden: !document.querySelector('a[href="preview.html"]')
+        }
+      })()`)
+    })
+    expect(rendered).toMatchObject({ canvas: true, embeddedLinkHidden: true, resourceStatus: 200, resourceType: 'image/png' })
+    expect(rendered?.width).toBeGreaterThan(0)
+    expect(rendered?.height).toBeGreaterThan(0)
+    expect(rendered?.resourceBytes).toBeGreaterThan(0)
+    await expect(page.getByText('Nodes', { exact: true })).toBeVisible()
+    await page.screenshot({ path: path.join(screenshotRoot, 'phase-9', 'unity-ui-editor-integration.png') })
+
+    await page.getByRole('tab', { name: 'Game', exact: true }).click()
+    await expect.poll(() => application.evaluate(({ BrowserWindow }) => {
+      const window = BrowserWindow.getAllWindows()[0]
+      const view = window?.contentView.children.find((child) => {
+        const candidate = child as unknown as { webContents?: { getURL(): string } }
+        return candidate.webContents?.getURL().startsWith('unity-ui-preview://local/') === true
+      }) as unknown as { getBounds?(): { x: number; y: number; width: number; height: number } } | undefined
+      return view?.getBounds?.() ?? null
+    })).toMatchObject({ width: 0, height: 0 })
+  } finally {
+    await closeEditor(application)
+  }
+})
+
 async function launchEditor(name: string): Promise<ElectronApplication> {
   const userData = path.resolve('test-results', `user-data-${name}`)
   await fs.mkdir(userData, { recursive: true })
@@ -481,6 +553,72 @@ async function writeSceneFixture(projectRoot: string): Promise<void> {
     ]
   }
   await fs.writeFile(path.join(scenes, 'MainScene.phaser-scene.json'), serializeSceneDocument(document), 'utf8')
+}
+
+async function writeUnityUIFixture(phaserProject: string, unityProject: string, prefabRoot: string, uiRawRoot: string): Promise<void> {
+  await Promise.all([
+    fs.mkdir(phaserProject, { recursive: true }),
+    fs.mkdir(prefabRoot, { recursive: true }),
+    fs.mkdir(uiRawRoot, { recursive: true }),
+    fs.mkdir(path.join(unityProject, 'ProjectSettings'), { recursive: true })
+  ])
+  await Promise.all([
+    fs.writeFile(path.join(phaserProject, 'package.json'), JSON.stringify({ name: 'unity-ui-e2e', dependencies: { phaser: '4.2.1' } }), 'utf8'),
+    fs.writeFile(path.join(unityProject, 'ProjectSettings', 'ProjectVersion.txt'), 'm_EditorVersion: 2022.3.20f1\n', 'utf8'),
+    fs.writeFile(path.join(uiRawRoot, 'panel.png'), createTilesetPng()),
+    fs.writeFile(path.join(uiRawRoot, 'panel.png.meta'), `fileFormatVersion: 2
+guid: a1111111111111111111111111111111
+TextureImporter:
+  spriteMode: 1
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spritePivot: {x: 0.5, y: 0.5}
+`, 'utf8'),
+    fs.writeFile(path.join(prefabRoot, 'Main.prefab'), `%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_Component:
+  - component: {fileID: 2000}
+  - component: {fileID: 3000}
+  m_Layer: 5
+  m_Name: Main
+  m_IsActive: 1
+--- !u!224 &2000
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 1000}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 500, y: 180}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &3000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_GameObject: {fileID: 1000}
+  m_Enabled: 1
+  m_Sprite: {fileID: 21300000, guid: a1111111111111111111111111111111, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillOrigin: 0
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_PixelsPerUnitMultiplier: 1
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_Maskable: 1
+`, 'utf8')
+  ])
 }
 
 function createTilesetPng(): Buffer {

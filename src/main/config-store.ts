@@ -32,7 +32,8 @@ const defaultSettings: EditorSettings = {
     'run.stop': 'Shift+F6'
   },
   enabledPlugins: [],
-  phaserSourceRoot: process.env.PHASER_SOURCE_ROOT ?? 'I:\\Phaser\\phaser'
+  phaserSourceRoot: process.env.PHASER_SOURCE_ROOT ?? 'I:\\Phaser\\phaser',
+  unityUIConfigurations: {}
 }
 
 export class ConfigStore {
@@ -51,7 +52,8 @@ export class ConfigStore {
         ...structuredClone(defaultSettings),
         ...parsed,
         runConfigurations: { ...defaultSettings.runConfigurations, ...parsed.runConfigurations },
-        shortcuts: { ...defaultSettings.shortcuts, ...parsed.shortcuts }
+        shortcuts: { ...defaultSettings.shortcuts, ...parsed.shortcuts },
+        unityUIConfigurations: { ...defaultSettings.unityUIConfigurations, ...parsed.unityUIConfigurations }
       }
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
