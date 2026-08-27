@@ -18,7 +18,7 @@
 - Preserve Unity YAML document type, file ID, stripped state, and complete object references.
 - Treat file IDs as strings; signed and oversized IDs are valid identity values.
 - Keep unknown serialized fields so adapters and diagnostics can inspect them.
-- Resolve GUIDs across the complete Assets tree. Package and built-in script GUIDs may require a separate known-component registry rather than an Assets lookup.
+- Resolve GUIDs across the complete Assets tree for full-fidelity work. When the user explicitly limits asset roots, do not search outside them; emit blocking unresolved-reference evidence instead. Package and built-in script GUIDs may require a separate known-component registry rather than an Assets lookup.
 - A sprite reference identifies both a texture asset and a sprite sub-asset. Match the sprite importer table by file ID before falling back to a whole texture.
 
 ## Canvas And Coordinate Space

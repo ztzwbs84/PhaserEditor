@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:,">
+  <title>Unity UGUI HTML Preview</title>
+  <link rel="stylesheet" href="preview.css">
+</head>
+<body>
+  <header class="toolbar">
+    <strong>UGUI Preview</strong>
+    <select id="prefabSelect" title="Prefab"></select>
+    <label>W <input id="canvasWidth" type="number" min="1" step="1"></label>
+    <label>H <input id="canvasHeight" type="number" min="1" step="1"></label>
+    <select id="scaleMode" title="Scale mode">
+      <option value="fit">Fit</option>
+      <option value="actual">100%</option>
+      <option value="width">Width</option>
+      <option value="height">Height</option>
+    </select>
+    <label class="toggle"><input id="debugToggle" type="checkbox"> Debug</label>
+    <button id="resetButton" type="button">Reset</button>
+    <a href="phaser.html">Phaser</a>
+    <span id="status" class="status"></span>
+  </header>
+  <main class="workspace">
+    <aside class="sidebar">
+      <div class="panel-title">Hierarchy</div>
+      <div id="hierarchy" class="hierarchy"></div>
+      <div class="panel-title">Inspector</div>
+      <pre id="inspector" class="inspector"></pre>
+    </aside>
+    <section id="viewport" class="viewport"><div id="stage" class="stage"></div></section>
+    <aside class="diagnostics-pane">
+      <div class="panel-title">Diagnostics <span id="diagnosticCount"></span></div>
+      <div id="diagnostics" class="diagnostics"></div>
+    </aside>
+  </main>
+  <script src="preview-data.js"></script>
+  <script type="module" src="preview-runtime.js"></script>
+</body>
+</html>

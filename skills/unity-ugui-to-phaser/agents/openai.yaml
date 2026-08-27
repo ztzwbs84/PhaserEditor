@@ -1,4 +1,4 @@
 interface:
   display_name: "Unity UGUI to Phaser"
-  short_description: "Prove commercial Unity UGUI parity in Phaser"
-  default_prompt: "Use $unity-ugui-to-phaser to convert this Unity UGUI and validate it with commercial fidelity gates."
+  short_description: "Standalone Unity UGUI conversion and Phaser fidelity"
+  default_prompt: "Use $unity-ugui-to-phaser and its bundled standalone converter to convert this Unity UGUI, then validate it with commercial fidelity gates."

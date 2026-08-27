@@ -1,0 +1,25 @@
+{
+  "name": "unity-ugui-to-phaser-skill-runtime",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "doctor": "node scripts/doctor.mjs",
+    "smoke": "node scripts/smoke-test.mjs",
+    "build:converter": "tsc -p runtime/unity-ui-converter/tsconfig.json",
+    "ugui": "node scripts/ugui.mjs",
+    "profile": "node scripts/profile-corpus.mjs",
+    "audit": "node scripts/audit-batch.mjs",
+    "compare": "node scripts/compare-renders.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1",
+    "@types/node": "22.20.1",
+    "phaser": "4.2.1",
+    "typescript": "6.0.3"
+  }
+}
