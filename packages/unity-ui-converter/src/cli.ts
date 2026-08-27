@@ -10,7 +10,8 @@ import { scanUnityProject } from './scan.js'
 interface UnityUIOptions {
   unityProjectRoot: string
   prefabRoot: string
-  uiRawRoot: string
+  uiRawRoot: string | null
+  assetRoots: string[]
   assetIndexCache: string
   outputRoot: string
   referenceResolution: { x: number; y: number }
@@ -96,13 +97,12 @@ async function runBatch(options: UnityUIOptions, args: Record<string, string>): 
 }
 
 async function loadIndex(options: UnityUIOptions, rebuild: boolean): Promise<UnityAssetIndex> {
-  const assetsRoot = path.join(options.unityProjectRoot, 'Assets')
   if (rebuild) {
-    const index = await UnityAssetIndex.build(assetsRoot)
+    const index = await UnityAssetIndex.buildMany(options.assetRoots)
     await index.save(options.assetIndexCache)
     return index
   }
-  return UnityAssetIndex.build(assetsRoot, options.assetIndexCache)
+  return UnityAssetIndex.buildMany(options.assetRoots, options.assetIndexCache)
 }
 
 async function resolveOptions(args: Record<string, string>): Promise<UnityUIOptions> {
@@ -111,10 +111,17 @@ async function resolveOptions(args: Record<string, string>): Promise<UnityUIOpti
   }
   const explicitPrefabRoot = args['prefab-root'] ?? process.env.UNITY_UI_PREFAB_ROOT
   const explicitUiRawRoot = args['ui-raw-root'] ?? process.env.UNITY_UI_RAW_ROOT
+  const explicitAssetRoots = args['asset-roots'] ?? args['asset-root'] ?? process.env.UNITY_UI_ASSET_ROOTS
   const projectInput = args.project ?? args['project-root'] ?? process.env.UNITY_PROJECT_ROOT
   const unityProjectRoot = path.resolve(projectInput ?? inferProjectRoot(explicitPrefabRoot ?? explicitUiRawRoot))
-  const prefabRoot = path.resolve(explicitPrefabRoot ?? path.join(unityProjectRoot, 'Assets', 'Resources', 'UI'))
-  const uiRawRoot = path.resolve(explicitUiRawRoot ?? path.join(unityProjectRoot, 'Assets', 'UIRaw'))
+  const prefabRoot = explicitPrefabRoot
+    ? path.resolve(explicitPrefabRoot)
+    : await detectPrefabRoot(unityProjectRoot)
+  const uiRawCandidate = path.resolve(explicitUiRawRoot ?? path.join(unityProjectRoot, 'Assets', 'UIRaw'))
+  const uiRawRoot = await directoryExists(uiRawCandidate) ? uiRawCandidate : null
+  const assetRoots = explicitAssetRoots
+    ? splitPaths(explicitAssetRoots).map((assetRoot) => path.resolve(assetRoot))
+    : [path.join(unityProjectRoot, 'Assets')]
   const outputRoot = path.resolve(args['output-root'] ?? process.env.UNITY_UI_OUTPUT_ROOT ?? path.join('artifacts', 'unity-ui'))
   const assetIndexCache = path.resolve(args['asset-index'] ?? process.env.UNITY_UI_ASSET_INDEX ?? path.join(outputRoot, 'cache', 'asset-index.json'))
   const referenceResolution = parseResolution(
@@ -124,8 +131,10 @@ async function resolveOptions(args: Record<string, string>): Promise<UnityUIOpti
   )
   await assertDirectory(unityProjectRoot, 'Unity project root')
   await assertDirectory(path.join(unityProjectRoot, 'Assets'), 'Unity Assets directory')
-  await Promise.all([assertDirectory(prefabRoot, 'Prefab directory'), assertDirectory(uiRawRoot, 'UIRaw directory')])
-  return { unityProjectRoot, prefabRoot, uiRawRoot, assetIndexCache, outputRoot, referenceResolution }
+  await assertDirectory(prefabRoot, 'Prefab directory')
+  if (explicitUiRawRoot && !uiRawRoot) await assertDirectory(uiRawCandidate, 'UIRaw directory')
+  for (const assetRoot of assetRoots) await assertDirectory(assetRoot, 'Asset root')
+  return { unityProjectRoot, prefabRoot, uiRawRoot, assetRoots, assetIndexCache, outputRoot, referenceResolution }
 }
 
 async function readUnityVersion(projectRoot: string): Promise<string | null> {
@@ -157,8 +166,9 @@ Commands:
   batch --project <Unity project> [--prefabs <file,...>] [options]
 
 Project options:
-  --prefab-root <dir>       Defaults to <project>/Assets/Resources/UI
-  --ui-raw-root <dir>       Defaults to <project>/Assets/UIRaw
+  --prefab-root <dir>       Auto-detects Assets/Resources/UI, Assets/UI, then Assets
+  --ui-raw-root <dir>       Optional raw UI directory; omitted when it does not exist
+  --asset-roots <dir;dir>   Limit GUID indexing to one or more directories
   --output-root <dir>       Defaults to artifacts/unity-ui
   --asset-index <file>      Defaults to <output-root>/cache/asset-index.json
   --reference-resolution WxH (default: 750x1334)
@@ -170,7 +180,7 @@ Command options:
   --rebuild-index           Rebuild the GUID index before conversion
 
 The same values can be supplied through UNITY_PROJECT_ROOT, UNITY_UI_PREFAB_ROOT,
-UNITY_UI_RAW_ROOT, UNITY_UI_OUTPUT_ROOT, UNITY_UI_ASSET_INDEX, and
+UNITY_UI_RAW_ROOT, UNITY_UI_ASSET_ROOTS, UNITY_UI_OUTPUT_ROOT, UNITY_UI_ASSET_INDEX, and
 UNITY_UI_REFERENCE_RESOLUTION.`)
 }
 
@@ -224,6 +234,21 @@ async function assertDirectory(directory: string, label: string): Promise<void> 
   }
 }
 
+async function directoryExists(directory: string): Promise<boolean> {
+  try { return (await stat(directory)).isDirectory() } catch { return false }
+}
+
+async function detectPrefabRoot(projectRoot: string): Promise<string> {
+  const assetsRoot = path.join(projectRoot, 'Assets')
+  const candidates = [
+    path.join(assetsRoot, 'Resources', 'UI'),
+    path.join(assetsRoot, 'UI'),
+    assetsRoot
+  ]
+  for (const candidate of candidates) if (await directoryExists(candidate)) return path.resolve(candidate)
+  return path.resolve(assetsRoot)
+}
+
 function inferProjectRoot(explicitPrefabRoot: string | undefined): string {
   const start = explicitPrefabRoot ? path.resolve(explicitPrefabRoot) : path.resolve(process.cwd())
   let current = start
@@ -234,6 +259,10 @@ function inferProjectRoot(explicitPrefabRoot: string | undefined): string {
     current = parent
   }
   return start
+}
+
+function splitPaths(value: string): string[] {
+  return value.split(';').map((entry) => entry.trim()).filter(Boolean)
 }
 
 function parseResolution(value: string | undefined, width: string | undefined, height: string | undefined): { x: number; y: number } {

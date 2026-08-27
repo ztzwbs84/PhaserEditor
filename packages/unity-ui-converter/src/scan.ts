@@ -5,7 +5,7 @@ import type { AssetIndexSummary } from './asset-index.js'
 export interface UnityProjectScanReport {
   generatedAt: string
   unityVersion: string | null
-  paths: { projectRoot: string; prefabRoot: string; uiRawRoot: string }
+  paths: { projectRoot: string; prefabRoot: string; uiRawRoot: string | null }
   prefabs: {
     count: number
     totalBytes: number
@@ -20,11 +20,11 @@ export interface UnityProjectScanReport {
   assetIndex: AssetIndexSummary
 }
 
-export async function scanUnityProject(projectRoot: string, prefabRoot: string, uiRawRoot: string, assetIndex: AssetIndexSummary): Promise<UnityProjectScanReport> {
+export async function scanUnityProject(projectRoot: string, prefabRoot: string, uiRawRoot: string | null, assetIndex: AssetIndexSummary): Promise<UnityProjectScanReport> {
   const prefabFiles: Array<{ path: string; bytes: number }> = []
   const rawFiles: Array<{ path: string; bytes: number }> = []
   for await (const file of walkFiles(prefabRoot)) if (file.path.toLocaleLowerCase().endsWith('.prefab')) prefabFiles.push(file)
-  for await (const file of walkFiles(uiRawRoot)) rawFiles.push(file)
+  if (uiRawRoot) for await (const file of walkFiles(uiRawRoot)) rawFiles.push(file)
   const componentPatterns: Record<string, RegExp> = {
     Image: /^  m_Sprite:/m, RawImage: /^  m_Texture:/m, Text: /^  m_Text:/m, TextMeshProUGUI: /^  m_text:/m,
     Button: /^  m_OnClick:$/m, Toggle: /^  m_IsOn:/m, Slider: /^  m_MaxValue:/m, ScrollRect: /^  m_Viewport:/m,
@@ -52,7 +52,11 @@ export async function scanUnityProject(projectRoot: string, prefabRoot: string, 
   return {
     generatedAt: new Date().toISOString(),
     unityVersion: await readUnityVersion(projectRoot),
-    paths: { projectRoot: path.resolve(projectRoot), prefabRoot: path.resolve(prefabRoot), uiRawRoot: path.resolve(uiRawRoot) },
+    paths: {
+      projectRoot: path.resolve(projectRoot),
+      prefabRoot: path.resolve(prefabRoot),
+      uiRawRoot: uiRawRoot ? path.resolve(uiRawRoot) : null
+    },
     prefabs: {
       count: prefabFiles.length,
       totalBytes: prefabFiles.reduce((total, file) => total + file.bytes, 0),

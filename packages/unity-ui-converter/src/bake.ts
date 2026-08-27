@@ -1,5 +1,4 @@
 import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises'
-import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { UIDiagnostic, UnityUIDocument } from './schema.js'
@@ -63,8 +62,8 @@ export async function bakeUnityUIDocument(document: UnityUIDocument, options: Ba
     await copyFile(fileURLToPath(new URL(`./${runtimeFile}`, import.meta.url)), path.join(outputDirectory, runtimeFile))
   }
   if (options.copyPhaserRuntime !== false) {
-    const require = createRequire(import.meta.url)
-    await copyFile(require.resolve('phaser'), path.join(vendorDirectory, 'phaser.js'))
+    const bundledPhaser = fileURLToPath(new URL('../vendor/phaser.js', import.meta.url))
+    await copyFile(bundledPhaser, path.join(vendorDirectory, 'phaser.js'))
   }
 
   const documentJson = path.join(outputDirectory, 'ui.json')

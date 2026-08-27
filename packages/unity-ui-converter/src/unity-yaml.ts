@@ -1,4 +1,4 @@
-import { JSON_SCHEMA, load } from 'js-yaml'
+import { JSON_SCHEMA, load } from '../vendor/js-yaml.mjs'
 import type { UIDiagnostic, Vec2, Vec3, Vec4, Color } from './schema.js'
 
 export type UnknownRecord = Record<string, unknown>
