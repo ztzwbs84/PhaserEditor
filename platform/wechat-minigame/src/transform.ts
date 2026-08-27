@@ -18,7 +18,8 @@ interface Replacement {
 export function transformPhaserSource(
   sourceText: string,
   id: string,
-  stats: TransformStats
+  stats: TransformStats,
+  fontFamilies: readonly string[] = []
 ): { code: string; changed: boolean } {
   const cleanId = id.split('?', 1)[0]!
   if (!/\.(?:[cm]?[jt]sx?)$/i.test(cleanId)) return { code: sourceText, changed: false }
@@ -32,7 +33,7 @@ export function transformPhaserSource(
     const moduleName = statement.moduleSpecifier.text
     if (isCssModule(moduleName) && !statement.importClause) {
       const end = consumeLineBreak(sourceText, statement.getEnd())
-      replacements.push({ start: statement.getFullStart(), end, text: '' })
+      replacements.push({ start: statement.getStart(sourceFile), end, text: '' })
       stats.removedCssImports.push(`${normalizePath(cleanId)}:${moduleName}`)
       continue
     }
@@ -52,10 +53,39 @@ export function transformPhaserSource(
   }
 
   const visit = (node: ts.Node): void => {
+    if (ts.isCallExpression(node)) {
+      const assetArguments = loaderAssetArguments(node)
+      if (assetArguments.length > 0) {
+        const wrapped = new Set<ts.Expression>(assetArguments)
+        for (const argument of assetArguments) {
+          replacements.push({
+            start: argument.getStart(sourceFile),
+            end: argument.getEnd(),
+            text: `globalThis.__PHASER_WECHAT_RESOLVE_ASSET_URL__(${argument.getText(sourceFile)})`
+          })
+        }
+        visit(node.expression)
+        for (const argument of node.arguments) if (!wrapped.has(argument)) visit(argument)
+        return
+      }
+    }
+
     if (ts.isStringLiteralLike(node) && node.text.startsWith('/assets/')) {
       const rewritten = node.text.slice(1)
       replacements.push({ start: node.getStart(sourceFile), end: node.getEnd(), text: JSON.stringify(rewritten) })
       stats.rewrittenAssets.push(`${node.text} -> ${rewritten}`)
+      return
+    }
+
+    if (
+      ts.isStringLiteralLike(node)
+      && fontFamilies.some((family) => node.text.includes(family))
+    ) {
+      replacements.push({
+        start: node.getStart(sourceFile),
+        end: node.getEnd(),
+        text: `globalThis.__PHASER_WECHAT_RESOLVE_FONT_FAMILY__(${JSON.stringify(node.text)})`
+      })
       return
     }
 
@@ -91,6 +121,7 @@ export function transformPhaserSource(
 export function createWechatTransformPlugin(options: {
   projectRoot: string
   entryPath: string
+  fontFamilies?: readonly string[]
   stats: TransformStats
 }): Plugin {
   const bootstrapId = '\0phaser-wechat-bootstrap'
@@ -113,7 +144,7 @@ export function createWechatTransformPlugin(options: {
     transform(code, id) {
       const cleanId = path.normalize(id.split('?', 1)[0]!)
       if (!isInside(projectRoot, cleanId)) return null
-      const transformed = transformPhaserSource(code, id, options.stats)
+      const transformed = transformPhaserSource(code, id, options.stats, options.fontFamilies)
       return transformed.changed ? { code: transformed.code, map: null } : null
     }
   }
@@ -138,6 +169,27 @@ function gameConstructor(
     && namespaces.has(expression.expression.text)
   ) return expression.getText()
   return undefined
+}
+
+function loaderAssetArguments(call: ts.CallExpression): ts.Expression[] {
+  if (!ts.isPropertyAccessExpression(call.expression)) return []
+  const loaderAccess = call.expression.expression
+  if (!ts.isPropertyAccessExpression(loaderAccess) || loaderAccess.name.text !== 'load') return []
+  const indices = loaderAssetArgumentIndices[call.expression.name.text]
+  if (!indices) return []
+  return indices.flatMap((index) => call.arguments[index] ? [call.arguments[index]!] : [])
+}
+
+const loaderAssetArgumentIndices: Readonly<Record<string, readonly number[]>> = {
+  image: [1],
+  spritesheet: [1],
+  svg: [1],
+  bitmapFont: [1, 2],
+  atlas: [1, 2],
+  atlasXML: [1, 2],
+  atlasJSONArray: [1, 2],
+  atlasJSONHash: [1, 2],
+  unityAtlas: [1, 2]
 }
 
 function consumeLineBreak(source: string, offset: number): number {

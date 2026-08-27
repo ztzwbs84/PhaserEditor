@@ -113,7 +113,11 @@ export async function analyzeProject(projectValue: string): Promise<ProjectAnaly
   }
 }
 
-export function analyzeSourceText(sourceText: string, fileName = 'src/main.ts'): SourceAnalysis {
+export function analyzeSourceText(
+  sourceText: string,
+  fileName = 'src/main.ts',
+  numericBindings: ReadonlyMap<string, number> = new Map()
+): SourceAnalysis {
   const sourceFile = ts.createSourceFile(
     fileName,
     sourceText,
@@ -162,7 +166,11 @@ export function analyzeSourceText(sourceText: string, fileName = 'src/main.ts'):
   const visit = (node: ts.Node): void => {
     if (ts.isStringLiteralLike(node) && /^\/?assets\//.test(node.text)) assetReferences.add(node.text)
     if (ts.isCallExpression(node)) {
-      if (ts.isIdentifier(node.expression) && node.expression.text === 'fetch') {
+      if (
+        ts.isIdentifier(node.expression)
+        && node.expression.text === 'fetch'
+        && !isPackagedFetch(node, variableInitializers)
+      ) {
         networkApis.add(locationLabel(sourceFile, node, fileName, 'fetch'))
       }
       if (
@@ -190,8 +198,8 @@ export function analyzeSourceText(sourceText: string, fileName = 'src/main.ts'):
           column: position.character + 1,
           constructorText,
           configText: config?.getText(sourceFile) ?? null,
-          width: readConfigDimension(resolvedConfig, 'width', variableInitializers),
-          height: readConfigDimension(resolvedConfig, 'height', variableInitializers)
+          width: readConfigDimension(resolvedConfig, 'width', variableInitializers, numericBindings),
+          height: readConfigDimension(resolvedConfig, 'height', variableInitializers, numericBindings)
         })
       }
     }
@@ -209,6 +217,73 @@ export function analyzeSourceText(sourceText: string, fileName = 'src/main.ts'):
   }
 }
 
+function isPackagedFetch(call: ts.CallExpression, variables: Map<string, ts.Expression>): boolean {
+  const prefix = staticStringPrefix(call.arguments[0], call, variables)
+  return prefix !== undefined && /^(?:\.\/|\/?(?:assets|content)\/)/i.test(prefix.replace(/\\/g, '/'))
+}
+
+function staticStringPrefix(
+  expression: ts.Expression | undefined,
+  context: ts.Node,
+  variables: Map<string, ts.Expression>,
+  seen = new Set<ts.Node>()
+): string | undefined {
+  if (!expression || seen.has(expression)) return undefined
+  seen.add(expression)
+  const value = resolveExpression(expression, variables)
+  if (!value) return undefined
+  if (ts.isStringLiteralLike(value)) return value.text
+  if (isViteBaseUrl(value)) return './'
+  if (ts.isTemplateExpression(value)) {
+    let prefix = value.head.text
+    for (const span of value.templateSpans) {
+      const part = staticStringPrefix(span.expression, context, variables, seen)
+      if (part === undefined) return prefix || undefined
+      prefix += part + span.literal.text
+    }
+    return prefix
+  }
+  if (ts.isBinaryExpression(value) && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+    const left = staticStringPrefix(value.left, context, variables, seen)
+    if (left === undefined) return undefined
+    const right = staticStringPrefix(value.right, context, variables, seen)
+    return right === undefined ? left : left + right
+  }
+  if (
+    ts.isPropertyAccessExpression(value)
+    && value.expression.kind === ts.SyntaxKind.ThisKeyword
+  ) {
+    const containingClass = findContainingClass(context)
+    const member = containingClass?.members.find((candidate) => (
+      ts.isPropertyDeclaration(candidate)
+      && candidate.initializer
+      && getPropertyName(candidate.name) === value.name.text
+    ))
+    if (member && ts.isPropertyDeclaration(member)) {
+      return staticStringPrefix(member.initializer, context, variables, seen)
+    }
+  }
+  return undefined
+}
+
+function isViteBaseUrl(expression: ts.Expression): boolean {
+  if (!ts.isPropertyAccessExpression(expression) || expression.name.text !== 'BASE_URL') return false
+  const env = expression.expression
+  if (!ts.isPropertyAccessExpression(env) || env.name.text !== 'env') return false
+  return ts.isMetaProperty(env.expression)
+    && env.expression.keywordToken === ts.SyntaxKind.ImportKeyword
+    && env.expression.name.text === 'meta'
+}
+
+function findContainingClass(node: ts.Node): ts.ClassLikeDeclaration | undefined {
+  let current: ts.Node | undefined = node.parent
+  while (current) {
+    if (ts.isClassDeclaration(current) || ts.isClassExpression(current)) return current
+    current = current.parent
+  }
+  return undefined
+}
+
 async function analyzeSourceGraph(projectRoot: string, entryPath: string): Promise<SourceAnalysis> {
   const pending = [entryPath]
   const visited = new Set<string>()
@@ -224,14 +299,15 @@ async function analyzeSourceGraph(projectRoot: string, entryPath: string): Promi
     visited.add(filePath)
     const sourceText = await readFile(filePath, 'utf8')
     const relative = normalizeRelative(projectRoot, filePath)
-    const analysis = analyzeSourceText(sourceText, relative)
+    const sourceFile = ts.createSourceFile(filePath, sourceText, ts.ScriptTarget.Latest, true, scriptKind(filePath))
+    const numericBindings = await collectImportedNumericBindings(filePath, sourceFile)
+    const analysis = analyzeSourceText(sourceText, relative, numericBindings)
     gameSites.push(...analysis.gameSites)
     cssImports.push(...analysis.cssImports)
     analysis.assetReferences.forEach((asset) => assetReferences.add(asset))
     analysis.networkApis.forEach((usage) => networkApis.add(usage))
     analysis.browserGlobals.forEach((usage) => browserGlobals.add(usage))
 
-    const sourceFile = ts.createSourceFile(filePath, sourceText, ts.ScriptTarget.Latest, true, scriptKind(filePath))
     for (const specifier of collectRelativeImports(sourceFile)) {
       if (isCssModule(specifier)) continue
       const resolved = await resolveSourceImport(path.dirname(filePath), specifier)
@@ -247,6 +323,71 @@ async function analyzeSourceGraph(projectRoot: string, entryPath: string): Promi
     networkApis: [...networkApis].sort(),
     browserGlobals: [...browserGlobals].sort()
   }
+}
+
+async function collectImportedNumericBindings(
+  filePath: string,
+  sourceFile: ts.SourceFile
+): Promise<Map<string, number>> {
+  const bindings = new Map<string, number>()
+  for (const statement of sourceFile.statements) {
+    if (
+      !ts.isImportDeclaration(statement)
+      || statement.importClause?.isTypeOnly
+      || !ts.isStringLiteral(statement.moduleSpecifier)
+      || !statement.moduleSpecifier.text.startsWith('.')
+    ) continue
+    const namedBindings = statement.importClause?.namedBindings
+    if (!namedBindings || !ts.isNamedImports(namedBindings)) continue
+    const importedPath = await resolveSourceImport(path.dirname(filePath), statement.moduleSpecifier.text)
+    if (!importedPath) continue
+    const importedText = await readFile(importedPath, 'utf8')
+    const importedSource = ts.createSourceFile(
+      importedPath,
+      importedText,
+      ts.ScriptTarget.Latest,
+      true,
+      scriptKind(importedPath)
+    )
+    const exportedNumbers = collectExportedNumbers(importedSource)
+    for (const element of namedBindings.elements) {
+      if (element.isTypeOnly) continue
+      const importedName = element.propertyName?.text ?? element.name.text
+      const value = exportedNumbers.get(importedName)
+      if (value !== undefined) bindings.set(element.name.text, value)
+    }
+  }
+  return bindings
+}
+
+function collectExportedNumbers(sourceFile: ts.SourceFile): Map<string, number> {
+  const result = new Map<string, number>()
+  for (const statement of sourceFile.statements) {
+    if (
+      !ts.isVariableStatement(statement)
+      || !statement.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword)
+    ) continue
+    for (const declaration of statement.declarationList.declarations) {
+      if (!ts.isIdentifier(declaration.name)) continue
+      const value = literalNumber(declaration.initializer)
+      if (value !== undefined) result.set(declaration.name.text, value)
+    }
+  }
+  return result
+}
+
+function literalNumber(expression: ts.Expression | undefined): number | undefined {
+  if (!expression) return undefined
+  let value = expression
+  while (ts.isParenthesizedExpression(value) || ts.isAsExpression(value) || ts.isSatisfiesExpression(value)) {
+    value = value.expression
+  }
+  if (ts.isNumericLiteral(value)) return Number(value.text)
+  if (ts.isPrefixUnaryExpression(value) && ts.isNumericLiteral(value.operand)) {
+    const number = Number(value.operand.text)
+    return value.operator === ts.SyntaxKind.MinusToken ? -number : number
+  }
+  return undefined
 }
 
 function collectRelativeImports(sourceFile: ts.SourceFile): string[] {
@@ -287,16 +428,17 @@ function recognizedGameConstructor(
 function readConfigDimension(
   expression: ts.Expression | undefined,
   dimension: 'width' | 'height',
-  variables: Map<string, ts.Expression>
+  variables: Map<string, ts.Expression>,
+  numericBindings: ReadonlyMap<string, number>
 ): number | undefined {
   const object = expression ? resolveExpression(expression, variables) : undefined
   if (!object || !ts.isObjectLiteralExpression(object)) return undefined
   const direct = readObjectProperty(object, dimension, variables)
-  const directNumber = numericValue(direct)
+  const directNumber = numericValue(direct, numericBindings)
   if (directNumber !== undefined) return directNumber
   const scale = resolveExpression(readObjectProperty(object, 'scale', variables), variables)
   if (!scale || !ts.isObjectLiteralExpression(scale)) return undefined
-  return numericValue(readObjectProperty(scale, dimension, variables))
+  return numericValue(readObjectProperty(scale, dimension, variables), numericBindings)
 }
 
 function readObjectProperty(
@@ -339,8 +481,12 @@ function resolveExpression(
   return current
 }
 
-function numericValue(expression: ts.Expression | undefined): number | undefined {
+function numericValue(
+  expression: ts.Expression | undefined,
+  numericBindings: ReadonlyMap<string, number> = new Map()
+): number | undefined {
   if (!expression) return undefined
+  if (ts.isIdentifier(expression)) return numericBindings.get(expression.text)
   if (ts.isNumericLiteral(expression)) return Number(expression.text)
   if (ts.isPrefixUnaryExpression(expression) && ts.isNumericLiteral(expression.operand)) {
     const value = Number(expression.operand.text)

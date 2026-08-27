@@ -64,7 +64,6 @@ export async function publishWechatProject(
 
   const appid = await readPreservedAppid(outputRoot, options.explicitAppid)
   await mkdir(outputRoot, { recursive: true })
-  if (oldManifest) await removeGeneratedFiles(outputRoot, oldManifest.generatedFiles)
 
   const generated = new Set<string>()
   const diagnostics: Diagnostic[] = []
@@ -90,6 +89,10 @@ export async function publishWechatProject(
   await publishText(outputRoot, 'optional/wechat-audio.js', OPTIONAL_AUDIO_MODULE, generated)
   await publishText(outputRoot, 'optional/spine-fallback.js', OPTIONAL_SPINE_MODULE, generated)
 
+  generated.add(MANIFEST_NAME)
+  generated.add(REPORT_NAME)
+  if (oldManifest) await removeStaleGeneratedFiles(outputRoot, oldManifest.generatedFiles, generated)
+
   diagnostics.push(...await auditAssets(analysis, outputRoot))
   const bundle = await readFile(path.join(outputRoot, 'js', 'game.bundle.js'), 'utf8')
   if (/\bimport\s*\(/.test(bundle)) {
@@ -111,10 +114,8 @@ export async function publishWechatProject(
     })
   }
 
-  generated.add(MANIFEST_NAME)
-  generated.add(REPORT_NAME)
   const sourceFiles = await summarizeSourceFiles(analysis)
-  const manifest: PatchManifest = {
+  let manifest: PatchManifest = {
     schemaVersion: 1,
     generator: '@phaser-editor/wechat-minigame@0.1.0',
     generatedAt: new Date().toISOString(),
@@ -129,8 +130,9 @@ export async function publishWechatProject(
     },
     sourceFiles
   }
-  await writeFile(path.join(outputRoot, MANIFEST_NAME), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
-  const packageBytes = await directoryBytes(outputRoot)
+  manifest = preserveGeneratedAt(oldManifest, manifest)
+  await writeTextIfChanged(path.join(outputRoot, MANIFEST_NAME), `${JSON.stringify(manifest, null, 2)}\n`)
+  const packageBytes = await generatedPackageBytes(outputRoot, generated)
   if (packageBytes > MAIN_PACKAGE_BUDGET) {
     diagnostics.push({
       code: 'MAIN_PACKAGE_BUDGET_EXCEEDED',
@@ -150,7 +152,12 @@ export async function publishWechatProject(
 }
 
 export async function writeConversionReport(outputRoot: string, report: ConversionReport): Promise<void> {
-  await writeFile(path.join(outputRoot, REPORT_NAME), `${JSON.stringify(report, null, 2)}\n`, 'utf8')
+  let nextReport = report
+  try {
+    const previous = JSON.parse(await readFile(path.join(outputRoot, REPORT_NAME), 'utf8')) as ConversionReport
+    nextReport = preserveGeneratedAt(previous, report)
+  } catch {}
+  await writeTextIfChanged(path.join(outputRoot, REPORT_NAME), `${JSON.stringify(nextReport, null, 2)}\n`)
 }
 
 export function manualChecklist(): string[] {
@@ -234,8 +241,14 @@ async function readManifest(outputRoot: string): Promise<PatchManifest | undefin
   }
 }
 
-async function removeGeneratedFiles(outputRoot: string, generatedFiles: string[]): Promise<void> {
-  const ordered = [...generatedFiles].sort((left, right) => right.length - left.length)
+async function removeStaleGeneratedFiles(
+  outputRoot: string,
+  previousFiles: string[],
+  generated: Set<string>
+): Promise<void> {
+  const ordered = previousFiles
+    .filter((relative) => !generated.has(relative.split(path.sep).join('/')))
+    .sort((left, right) => right.length - left.length)
   for (const relative of ordered) {
     if (relative === 'project.private.config.json') continue
     const target = path.resolve(outputRoot, relative)
@@ -253,15 +266,43 @@ async function copyTree(sourceRoot: string, outputRoot: string, generated: Set<s
 
 async function publishFile(source: string, target: string, outputRoot: string, generated: Set<string>): Promise<void> {
   await mkdir(path.dirname(target), { recursive: true })
-  await copyFile(source, target)
+  if (!await filesEqual(source, target)) await copyFile(source, target)
   generated.add(normalizeRelative(outputRoot, target))
 }
 
 async function publishText(outputRoot: string, relative: string, value: string, generated: Set<string>): Promise<void> {
   const target = path.join(outputRoot, relative)
   await mkdir(path.dirname(target), { recursive: true })
-  await writeFile(target, value, 'utf8')
+  await writeTextIfChanged(target, value)
   generated.add(relative.split(path.sep).join('/'))
+}
+
+async function filesEqual(source: string, target: string): Promise<boolean> {
+  try {
+    const [sourceStat, targetStat] = await Promise.all([stat(source), stat(target)])
+    if (sourceStat.size !== targetStat.size) return false
+    const [sourceValue, targetValue] = await Promise.all([readFile(source), readFile(target)])
+    return sourceValue.equals(targetValue)
+  } catch {
+    return false
+  }
+}
+
+async function writeTextIfChanged(target: string, value: string): Promise<void> {
+  try {
+    if (await readFile(target, 'utf8') === value) return
+  } catch {}
+  await mkdir(path.dirname(target), { recursive: true })
+  await writeFile(target, value, 'utf8')
+}
+
+function preserveGeneratedAt<T extends { generatedAt: string }>(previous: T | undefined, next: T): T {
+  if (!previous) return next
+  const { generatedAt: previousGeneratedAt, ...previousValue } = previous
+  const { generatedAt: _nextGeneratedAt, ...nextValue } = next
+  return JSON.stringify(previousValue) === JSON.stringify(nextValue)
+    ? { ...next, generatedAt: previousGeneratedAt }
+    : next
 }
 
 async function walkFiles(root: string): Promise<string[]> {
@@ -279,9 +320,13 @@ async function walkFiles(root: string): Promise<string[]> {
   return files.sort()
 }
 
-async function directoryBytes(root: string): Promise<number> {
+async function generatedPackageBytes(root: string, generated: Set<string>): Promise<number> {
   let bytes = 0
-  for (const file of await walkFiles(root)) bytes += (await stat(file)).size
+  for (const relative of generated) {
+    if (relative === MANIFEST_NAME || relative === REPORT_NAME) continue
+    const file = path.join(root, ...relative.split('/'))
+    try { bytes += (await stat(file)).size } catch {}
+  }
   return bytes
 }
 

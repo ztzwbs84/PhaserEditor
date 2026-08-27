@@ -20,6 +20,7 @@ class FakeCanvas2DContext {}
 function createRuntimeMock(hostWindow: any = {}) {
   const canvases: any[] = []
   const images: any[] = []
+  const imageSources: string[] = []
   const touch: Record<string, (event: any) => void> = {}
   const lifecycle: Record<string, (event?: any) => void> = {}
   const gl = new FakeWebGLContext()
@@ -46,7 +47,17 @@ function createRuntimeMock(hostWindow: any = {}) {
       return canvas
     },
     createImage() {
+      let src = ''
       const image = { nativeImage: true }
+      Object.defineProperty(image, 'src', {
+        configurable: true,
+        enumerable: true,
+        get: () => src,
+        set(value: string) {
+          src = value
+          imageSources.push(value)
+        }
+      })
       images.push(image)
       return image
     },
@@ -73,7 +84,7 @@ function createRuntimeMock(hostWindow: any = {}) {
   }
   const root: any = { wx }
   Object.defineProperty(root, 'window', { configurable: false, get: () => hostWindow })
-  return { root, hostWindow, wx, canvases, images, touch, lifecycle, gl }
+  return { root, hostWindow, wx, canvases, images, imageSources, touch, lifecycle, gl }
 }
 
 describe('installWechatRuntime', () => {
@@ -89,6 +100,13 @@ describe('installWechatRuntime', () => {
     const image = new mock.root.Image()
     expect(image).toBe(mock.images[0])
     expect(image instanceof mock.root.HTMLImageElement).toBe(true)
+    image.src = './assets/ruby/player.png?cache=1'
+    expect(mock.imageSources).toEqual(['assets/ruby/player.png'])
+    expect(image.src).toBe('assets/ruby/player.png')
+    const documentImage = mock.root.document.createElement('img')
+    documentImage.src = '/assets/ruby/enemy.png#frame'
+    expect(documentImage).toBe(mock.images[1])
+    expect(mock.imageSources).toEqual(['assets/ruby/player.png', 'assets/ruby/enemy.png'])
     expect(mock.canvases[0] instanceof mock.root.HTMLCanvasElement).toBe(true)
     expect(typeof mock.root.document.documentElement.appendChild).toBe('function')
   })
@@ -118,6 +136,121 @@ describe('installWechatRuntime', () => {
       scale: { mode: 0, autoCenter: 0, width: 960, height: 540 },
       loader: { imageLoadType: 'HTMLImageElement', maxParallelDownloads: 8 }
     })
+  })
+
+  it('materializes packaged images into USER_DATA_PATH before native loading', async () => {
+    const mock = createRuntimeMock()
+    const bytes = new Uint8Array([1, 2, 3]).buffer
+    const readFile = vi.fn(({ success }: any) => success({ data: bytes }))
+    const writeFile = vi.fn(({ success }: any) => success())
+    ;(mock.wx as any).env = { USER_DATA_PATH: 'wxfile://usr' }
+    ;(mock.wx as any).getFileSystemManager = () => ({ readFile, writeFile })
+
+    installWechatRuntime({ width: 720, height: 1280, orientation: 'portrait' }, mock.root)
+    const image = new mock.root.Image()
+    image.src = './assets/ruby/player.png?cache=1'
+    await Promise.resolve()
+
+    expect(readFile).toHaveBeenCalledWith(expect.objectContaining({
+      filePath: 'assets/ruby/player.png'
+    }))
+    expect(writeFile).toHaveBeenCalledWith(expect.objectContaining({
+      filePath: expect.stringMatching(/^wxfile:\/\/usr\/phaser-wechat-[0-9a-f]{8}\.png$/),
+      data: bytes
+    }))
+    expect(mock.imageSources).toEqual([
+      expect.stringMatching(/^wxfile:\/\/usr\/phaser-wechat-[0-9a-f]{8}\.png$/)
+    ])
+    expect(image).toBe(mock.images[0])
+  })
+
+  it('synchronously resolves Phaser loader URLs before native image assignment', () => {
+    const mock = createRuntimeMock()
+    const bytes = new Uint8Array([4, 5, 6]).buffer
+    const readFileSync = vi.fn(() => bytes)
+    const writeFileSync = vi.fn()
+    ;(mock.wx as any).env = { USER_DATA_PATH: 'wxfile://usr' }
+    ;(mock.wx as any).getFileSystemManager = () => ({ readFileSync, writeFileSync })
+
+    installWechatRuntime({ width: 720, height: 1280, orientation: 'portrait' }, mock.root)
+    const resolved = mock.root.__PHASER_WECHAT_RESOLVE_ASSET_URL__(
+      './assets/ruby/ui/title-ruby-logo.png?cache=1'
+    )
+
+    expect(readFileSync).toHaveBeenCalledWith('assets/ruby/ui/title-ruby-logo.png')
+    expect(writeFileSync).toHaveBeenCalledWith(
+      expect.stringMatching(/^wxfile:\/\/usr\/phaser-wechat-[0-9a-f]{8}\.png$/),
+      bytes
+    )
+    expect(resolved).toMatch(/^wxfile:\/\/usr\/phaser-wechat-[0-9a-f]{8}\.png$/)
+    expect(mock.root.__PHASER_WECHAT_RESOLVE_ASSET_URL__(
+      './assets/ruby/ui/title-ruby-logo.png'
+    )).toBe(resolved)
+    expect(readFileSync).toHaveBeenCalledTimes(1)
+  })
+
+  it('preserves source logical dimensions instead of forcing converter defaults', () => {
+    const mock = createRuntimeMock()
+    installWechatRuntime({ width: 720, height: 1280, orientation: 'portrait' }, mock.root)
+    let received: any
+    class Game {
+      constructor(config: any) { received = config }
+    }
+
+    mock.root.__PHASER_WECHAT_CREATE_GAME__(Game, {
+      width: 750,
+      height: 1624,
+      scale: { width: 750, height: 1624, mode: 3 }
+    })
+
+    expect(received).toMatchObject({
+      width: 750,
+      height: 1624,
+      scale: { width: 750, height: 1624, mode: 0 }
+    })
+    expect(mock.canvases[0]).toMatchObject({ width: 750, height: 1624 })
+  })
+
+  it('loads packaged fonts and implements the document font loading contract', async () => {
+    const mock = createRuntimeMock()
+    const loadFont = vi.fn(() => 'WXFont-1')
+    ;(mock.wx as any).loadFont = loadFont
+
+    installWechatRuntime({
+      width: 750,
+      height: 1624,
+      orientation: 'portrait',
+      fonts: [{ family: 'Fusion Pixel SC', path: '/assets/fonts/fusion-pixel.woff2' }]
+    }, mock.root)
+
+    expect(loadFont).toHaveBeenCalledWith('assets/fonts/fusion-pixel.woff2')
+    expect(mock.root.__PHASER_WECHAT_RESOLVE_FONT_FAMILY__(
+      '"Fusion Pixel SC", sans-serif'
+    )).toBe('"WXFont-1", sans-serif')
+    await expect(mock.root.document.fonts.load('12px "Fusion Pixel SC"')).resolves.toMatchObject([
+      { family: 'WXFont-1', status: 'loaded' }
+    ])
+    expect(mock.root.document.fonts.check('12px "Fusion Pixel SC"')).toBe(true)
+    await expect(mock.root.document.fonts.ready).resolves.toBeUndefined()
+  })
+
+  it('continues with the system font when a device rejects the packaged font', async () => {
+    const mock = createRuntimeMock()
+    ;(mock.wx as any).loadFont = vi.fn(() => '')
+
+    installWechatRuntime({
+      width: 750,
+      height: 1624,
+      orientation: 'portrait',
+      fonts: [{ family: 'Fusion Pixel SC', path: 'assets/fonts/fusion-pixel.woff2' }]
+    }, mock.root)
+
+    await expect(mock.root.document.fonts.load('12px "Fusion Pixel SC"')).resolves.toEqual([])
+    await expect(mock.root.document.fonts.ready).resolves.toBeUndefined()
+    expect(mock.root.document.fonts.check('12px "Fusion Pixel SC"')).toBe(false)
+    expect(mock.root.__PHASER_WECHAT_RESOLVE_FONT_FAMILY__(
+      '"Fusion Pixel SC", sans-serif'
+    )).toBe('"Fusion Pixel SC", sans-serif')
   })
 
   it('preserves the native window animation frame functions', () => {
@@ -161,6 +294,29 @@ describe('installWechatRuntime', () => {
     await loaded
     expect(xhr.status).toBe(200)
     expect(xhr.responseText).toBe('read:assets/data/config.json')
+  })
+
+  it('loads packaged JSON through fetch without using wx.request', async () => {
+    const mock = createRuntimeMock()
+    const readFile = vi.fn(({ filePath, success }: any) => {
+      success({ data: '{"schemaVersion":1,"packId":"base-ruby"}' })
+    })
+    const request = vi.fn()
+    ;(mock.wx as any).getFileSystemManager = () => ({ readFile })
+    ;(mock.wx as any).request = request
+    installWechatRuntime({ width: 720, height: 1280, orientation: 'portrait' }, mock.root)
+
+    const response = await mock.root.fetch('./content/packs/base-ruby/content-index.json?cache=1', {
+      cache: 'no-cache'
+    })
+
+    expect(response).toMatchObject({ ok: true, status: 200 })
+    expect(await response.json()).toEqual({ schemaVersion: 1, packId: 'base-ruby' })
+    expect(readFile).toHaveBeenCalledWith(expect.objectContaining({
+      filePath: 'content/packs/base-ruby/content-index.json',
+      encoding: 'utf8'
+    }))
+    expect(request).not.toHaveBeenCalled()
   })
 
   it('preserves native document APIs and only intercepts Phaser render elements', () => {
@@ -213,17 +369,52 @@ describe('installWechatRuntime', () => {
     })
   })
 
-  it('does not call deprecated getSystemInfoSync when modern window info is unavailable', () => {
+  it('provides persistent virtual elements for browser-only ID selectors', () => {
     const mock = createRuntimeMock()
-    const getSystemInfoSync = vi.fn(() => ({ windowWidth: 1, windowHeight: 1 }))
-    ;(mock.wx as any).getWindowInfo = () => { throw new Error('not ready') }
-    ;(mock.wx as any).getDeviceInfo = () => ({ screenWidth: 390, screenHeight: 844, pixelRatio: 2 })
-    ;(mock.wx as any).getSystemInfoSync = getSystemInfoSync
+    installWechatRuntime({ width: 720, height: 1280, orientation: 'portrait' }, mock.root)
 
-    const host = installWechatRuntime({ width: 720, height: 1280, orientation: 'portrait' }, mock.root)
+    const pauseButton = mock.root.document.querySelector('#pause-button')
+    const sameButton = mock.root.document.getElementById('pause-button')
 
-    expect(getSystemInfoSync).not.toHaveBeenCalled()
-    expect(host.viewport).toMatchObject({ width: 390, height: 844, pixelRatio: 2 })
+    expect(pauseButton).toBe(sameButton)
+    expect(mock.root.document.querySelectorAll('#pause-button')).toEqual([pauseButton])
+    expect(mock.root.document.querySelector('.missing')).toBeNull()
+    expect(pauseButton.dataset).toEqual({})
+    pauseButton.textContent = 'Pause'
+    pauseButton.setAttribute('aria-pressed', 'false')
+    expect(sameButton.textContent).toBe('Pause')
+    expect(sameButton.getAttribute('aria-pressed')).toBe('false')
+
+    mock.root.document.documentElement.dataset.gameState = 'ready'
+    expect(mock.root.document.documentElement.dataset.gameState).toBe('ready')
+  })
+
+  it('defers viewport APIs until the Mini Game bridge is ready', () => {
+    vi.useFakeTimers()
+    try {
+      const mock = createRuntimeMock()
+      const getWindowInfo = vi.fn(() => ({ windowWidth: 390, windowHeight: 844, pixelRatio: 2 }))
+      const getDeviceInfo = vi.fn(() => ({ screenWidth: 390, screenHeight: 844, pixelRatio: 2 }))
+      const getSystemInfoSync = vi.fn(() => ({ windowWidth: 1, windowHeight: 1 }))
+      ;(mock.wx as any).getWindowInfo = getWindowInfo
+      ;(mock.wx as any).getDeviceInfo = getDeviceInfo
+      ;(mock.wx as any).getSystemInfoSync = getSystemInfoSync
+
+      const host = installWechatRuntime({ width: 720, height: 1280, orientation: 'portrait' }, mock.root)
+
+      expect(getWindowInfo).not.toHaveBeenCalled()
+      expect(getDeviceInfo).not.toHaveBeenCalled()
+      expect(host.viewport).toMatchObject({ width: 360, height: 640, pixelRatio: 1 })
+
+      vi.advanceTimersByTime(200)
+
+      expect(getWindowInfo).toHaveBeenCalledTimes(1)
+      expect(getDeviceInfo).toHaveBeenCalledTimes(1)
+      expect(getSystemInfoSync).not.toHaveBeenCalled()
+      expect(host.viewport).toMatchObject({ width: 390, height: 844, pixelRatio: 2 })
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('provides URLSearchParams when the Mini Game runtime does not define it', () => {
@@ -238,6 +429,72 @@ describe('installWechatRuntime', () => {
     params.append('空 格', '值')
     expect(params.toString()).toContain('map=mine')
     expect(params.toString()).toContain('%E7%A9%BA+%E6%A0%BC=%E5%80%BC')
+  })
+
+  it('provides structuredClone when the Mini Game runtime does not define it', () => {
+    const mock = createRuntimeMock()
+    installWechatRuntime({ width: 720, height: 1280, orientation: 'portrait' }, mock.root)
+    const source: any = {
+      party: [{ hp: 20 }],
+      createdAt: new Date('2026-08-27T00:00:00.000Z'),
+      flags: new Set(['started']),
+      metadata: new Map([['area', { id: 'route-1' }]]),
+      bytes: new Uint8Array([1, 2, 3])
+    }
+    source.self = source
+
+    const clone = mock.root.structuredClone(source)
+
+    expect(clone).not.toBe(source)
+    expect(clone.party).toEqual(source.party)
+    expect(clone.party).not.toBe(source.party)
+    expect(clone.self).toBe(clone)
+    expect(clone.createdAt).toEqual(source.createdAt)
+    expect(clone.flags).toEqual(source.flags)
+    expect(clone.metadata).toEqual(source.metadata)
+    expect([...clone.bytes]).toEqual([1, 2, 3])
+    expect(clone.bytes).not.toBe(source.bytes)
+    expect(mock.hostWindow.structuredClone).toBe(mock.root.structuredClone)
+  })
+
+  it('provides DOMParser for Phaser XML and bitmap-font loaders', () => {
+    const mock = createRuntimeMock()
+    installWechatRuntime({ width: 720, height: 1280, orientation: 'portrait' }, mock.root)
+
+    const xml = new mock.root.DOMParser().parseFromString(`
+      <font>
+        <info face="Fusion Pixel SC" size="12" />
+        <common lineHeight="16" />
+        <chars><char id="65" x="1" y="2" /></chars>
+      </font>
+    `, 'text/xml')
+
+    expect(xml.documentElement.tagName).toBe('font')
+    expect(xml.getElementsByTagName('parsererror')).toHaveLength(0)
+    expect(xml.getElementsByTagName('info')[0].getAttribute('face')).toBe('Fusion Pixel SC')
+    expect(xml.getElementsByTagName('char')[0].getAttribute('id')).toBe('65')
+  })
+
+  it('maps window.location.reload to wx.restartMiniProgram', () => {
+    const mock = createRuntimeMock()
+    const restartMiniProgram = vi.fn()
+    ;(mock.wx as any).restartMiniProgram = restartMiniProgram
+    installWechatRuntime({ width: 720, height: 1280, orientation: 'portrait' }, mock.root)
+
+    mock.root.window.location.reload()
+
+    expect(restartMiniProgram).toHaveBeenCalledWith({})
+  })
+
+  it('preserves a native structuredClone implementation', () => {
+    const nativeStructuredClone = vi.fn((value: unknown) => ({ native: value }))
+    const mock = createRuntimeMock({ structuredClone: nativeStructuredClone })
+
+    installWechatRuntime({ width: 720, height: 1280, orientation: 'portrait' }, mock.root)
+
+    expect(mock.hostWindow.structuredClone).toBe(nativeStructuredClone)
+    expect(mock.root.structuredClone('save')).toEqual({ native: 'save' })
+    expect(nativeStructuredClone).toHaveBeenCalledWith('save')
   })
 
   it('dispatches native Event instances for lifecycle events', () => {

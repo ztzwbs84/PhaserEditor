@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { existsSync } from 'node:fs'
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -55,6 +55,27 @@ describe('converter integration', () => {
       expect(existsSync(path.join(output, 'project.private.config.json'))).toBe(true)
       expect(await readFile(path.join(output, 'manual.txt'), 'utf8')).toBe('keep\n')
       expect(await sourceDigest(templateProject, ['package.json', 'index.html', 'src/main.ts', 'src/style.css'])).toBe(before)
+
+      const stableFiles = [
+        'game.js',
+        'js/weapp-adapter.js',
+        '.wechat-patch-manifest.json',
+        'conversion-report.json'
+      ]
+      const stableTimes = await fileModificationTimes(output, stableFiles)
+      await new Promise((resolve) => setTimeout(resolve, 25))
+
+      const third = await convertProject({
+        project: templateProject,
+        output,
+        install: false,
+        force: false,
+        dryRun: false,
+        json: true
+      })
+
+      expect(third.report.appid).toBe('wx-preserved-integration')
+      expect(await fileModificationTimes(output, stableFiles)).toEqual(stableTimes)
     } finally {
       await rm(outputParent, { recursive: true, force: true })
     }
@@ -95,4 +116,11 @@ async function sourceDigest(root: string, files: string[]): Promise<string> {
     hash.update(await readFile(path.join(root, relative)))
   }
   return hash.digest('hex')
+}
+
+async function fileModificationTimes(root: string, files: string[]): Promise<Record<string, number>> {
+  return Object.fromEntries(await Promise.all(files.map(async (relative) => [
+    relative,
+    (await stat(path.join(root, relative))).mtimeMs
+  ])))
 }

@@ -1,8 +1,16 @@
+import { DOMParser as XMLDOMParser } from '@xmldom/xmldom'
+
 export interface WechatRuntimeOptions {
   width: number
   height: number
   orientation: 'portrait' | 'landscape'
   phaserVersion?: string
+  fonts?: WechatRuntimeFont[]
+}
+
+export interface WechatRuntimeFont {
+  family: string
+  path: string
 }
 
 export interface WechatViewport {
@@ -27,7 +35,17 @@ interface RuntimeState {
   host: WechatRuntimeHost
 }
 
+interface WechatFontRegistry {
+  ready: Promise<void>
+  resolve(value: unknown): string
+  load(descriptor: unknown): Promise<HostObject[]>
+  check(descriptor: unknown): boolean
+  faces: HostObject[]
+}
+
 const runtimeStates = new WeakMap<object, RuntimeState>()
+const packagedImagePathCaches = new WeakMap<object, Map<string, Promise<string>>>()
+const materializedAssetPathCaches = new WeakMap<object, Map<string, string>>()
 const noop = () => undefined
 
 export function installWechatRuntime(
@@ -39,18 +57,29 @@ export function installWechatRuntime(
 
   const gameGlobal = isObject(rootValue.GameGlobal) ? rootValue.GameGlobal as HostObject : rootValue
   const wx = resolveWechatApi(rootValue, gameGlobal)
+  const fontRegistry = loadWechatFonts(wx, options.fonts ?? [])
 
   // This must be the first canvas allocated by the adapter and the exact object
   // later injected into every Phaser.Game config.
   const mainCanvas = wx.createCanvas()
-  const viewport = readViewport(wx, mainCanvas)
+  const viewport = readInitialViewport(options, mainCanvas)
   const canvases = new WeakSet<object>()
   const images = new WeakSet<object>()
   canvases.add(mainCanvas)
 
   const webglContext = getWebglContext(mainCanvas)
   installWebglCompatibility(webglContext)
-  installGlobals({ root: rootValue, gameGlobal, wx, mainCanvas, webglContext, viewport, canvases, images })
+  installGlobals({
+    root: rootValue,
+    gameGlobal,
+    wx,
+    mainCanvas,
+    webglContext,
+    viewport,
+    canvases,
+    images,
+    fontRegistry
+  })
 
   const showListeners = new Set<() => void>()
   const hideListeners = new Set<() => void>()
@@ -72,7 +101,30 @@ export function installWechatRuntime(
     }
   }
 
+  const applyViewport = (next: WechatViewport) => {
+    const changed = next.width !== viewport.width
+      || next.height !== viewport.height
+      || next.pixelRatio !== viewport.pixelRatio
+      || next.safeArea.left !== viewport.safeArea.left
+      || next.safeArea.top !== viewport.safeArea.top
+      || next.safeArea.right !== viewport.safeArea.right
+      || next.safeArea.bottom !== viewport.safeArea.bottom
+    Object.assign(viewport, next)
+    safeAssign(rootValue.window, 'innerWidth', viewport.width)
+    safeAssign(rootValue.window, 'innerHeight', viewport.height)
+    safeAssign(rootValue.window, 'devicePixelRatio', viewport.pixelRatio)
+    safeAssign(rootValue.screen, 'width', viewport.width)
+    safeAssign(rootValue.screen, 'height', viewport.height)
+    if (changed) resizeListeners.forEach((callback) => callback(viewport))
+    return changed
+  }
+  const refreshViewport = () => {
+    const next = readWechatViewport(wx, viewport)
+    if (next && applyViewport(next)) dispatchSimpleEvent(rootValue.window, 'resize')
+  }
+
   wx.onShow?.(() => {
+    refreshViewport()
     dispatchSimpleEvent(rootValue.window, 'focus')
     showListeners.forEach((callback) => callback())
   })
@@ -81,42 +133,45 @@ export function installWechatRuntime(
     hideListeners.forEach((callback) => callback())
   })
   wx.onWindowResize?.((event: HostObject) => {
-    viewport.width = positiveNumber(event?.windowWidth, viewport.width)
-    viewport.height = positiveNumber(event?.windowHeight, viewport.height)
-    safeAssign(rootValue.window, 'innerWidth', viewport.width)
-    safeAssign(rootValue.window, 'innerHeight', viewport.height)
-    safeAssign(rootValue.screen, 'width', viewport.width)
-    safeAssign(rootValue.screen, 'height', viewport.height)
-    resizeListeners.forEach((callback) => callback(viewport))
-    dispatchSimpleEvent(rootValue.window, 'resize')
+    const changed = applyViewport({
+      ...viewport,
+      width: positiveNumber(event?.windowWidth, viewport.width),
+      height: positiveNumber(event?.windowHeight, viewport.height)
+    })
+    if (changed) dispatchSimpleEvent(rootValue.window, 'resize')
   })
+
+  const schedule = findHostMethod([rootValue.window, gameGlobal, rootValue], 'setTimeout') ?? setTimeout
+  schedule(refreshViewport, 200)
 
   const gameFactory = (GameConstructor: new (config: HostObject) => unknown, configValue?: HostObject) => {
     const source = isObject(configValue) ? configValue : {}
-    const scale = isObject(source.scale) ? source.scale : {}
+    const scale = isObject(source.scale) ? source.scale as HostObject : {}
     const loader = isObject(source.loader) ? source.loader : {}
+    const gameWidth = positiveNumber(source.width ?? scale.width, options.width)
+    const gameHeight = positiveNumber(source.height ?? scale.height, options.height)
     const config = {
       ...source,
       type: 2,
       canvas: mainCanvas,
       parent: null,
       customEnvironment: false,
-      width: options.width,
-      height: options.height,
+      width: gameWidth,
+      height: gameHeight,
       scale: {
         ...scale,
         mode: 0,
         autoCenter: 0,
-        width: options.width,
-        height: options.height
+        width: gameWidth,
+        height: gameHeight
       },
       loader: {
         ...loader,
         imageLoadType: 'HTMLImageElement'
       }
     }
-    mainCanvas.width = options.width
-    mainCanvas.height = options.height
+    mainCanvas.width = gameWidth
+    mainCanvas.height = gameHeight
     return new GameConstructor(config)
   }
 
@@ -138,10 +193,11 @@ interface InstallGlobalsContext {
   viewport: WechatViewport
   canvases: WeakSet<object>
   images: WeakSet<object>
+  fontRegistry: WechatFontRegistry
 }
 
 function installGlobals(context: InstallGlobalsContext): void {
-  const { root, gameGlobal, wx, mainCanvas, viewport, canvases, images } = context
+  const { root, gameGlobal, wx, mainCanvas, viewport, canvases, images, fontRegistry } = context
   assignIfMissing(root, 'GameGlobal', gameGlobal)
 
   const currentWindow = isObject(root.window)
@@ -152,6 +208,8 @@ function installGlobals(context: InstallGlobalsContext): void {
   exposeIfMissing(root, gameGlobal, 'top', currentWindow)
   exposeIfMissing(root, gameGlobal, 'parent', currentWindow)
   exposeIfMissing(root, gameGlobal, 'global', currentWindow)
+  expose(root, gameGlobal, '__PHASER_WECHAT_RESOLVE_FONT_FAMILY__', (value: unknown) => fontRegistry.resolve(value))
+  expose(root, gameGlobal, '__PHASER_WECHAT_RESOLVE_ASSET_URL__', (value: unknown) => resolveWechatAssetUrl(wx, value))
 
   const navigatorObject = isObject(currentWindow.navigator) ? currentWindow.navigator as HostObject : {}
   assignIfMissing(navigatorObject, 'userAgent', 'wechat-minigame')
@@ -198,6 +256,11 @@ function installGlobals(context: InstallGlobalsContext): void {
     : typeof root.URLSearchParams === 'function' ? root.URLSearchParams : WechatURLSearchParams
   exposeIfMissing(root, gameGlobal, 'URLSearchParams', URLSearchParamsConstructor)
 
+  const structuredCloneFunction = findHostMethod([currentWindow, gameGlobal, root], 'structuredClone')
+    ?? cloneStructured
+  exposeIfMissing(root, gameGlobal, 'structuredClone', structuredCloneFunction)
+  exposeIfMissing(root, gameGlobal, 'DOMParser', XMLDOMParser)
+
   const screenObject = isObject(root.screen) ? root.screen as HostObject : {}
   safeAssign(screenObject, 'width', viewport.width)
   safeAssign(screenObject, 'height', viewport.height)
@@ -230,23 +293,52 @@ function installGlobals(context: InstallGlobalsContext): void {
   patchElement(documentObject.body, viewport)
   patchElement(documentObject.documentElement, viewport)
   patchElement(documentObject.head, viewport)
-  assignIfMissing(documentObject, 'fonts', { ready: Promise.resolve(), add: noop })
-  installEventTarget(documentObject)
-  assignIfMissing(documentObject, 'elementFromPoint', () => mainCanvas)
-  assignIfMissing(documentObject, 'getElementById', () => null)
-  assignIfMissing(documentObject, 'getElementsByTagName', (tagName: string) => {
-    if (tagName.toLowerCase() === 'head') return [documentObject.head]
-    if (tagName.toLowerCase() === 'body') return [documentObject.body]
-    if (tagName.toLowerCase() === 'script') return [documentObject.currentScript]
-    return []
+  const documentFonts = isObject(documentObject.fonts) ? documentObject.fonts as HostObject : {}
+  assignIfMissing(documentFonts, 'ready', fontRegistry.ready)
+  assignIfMissing(documentFonts, 'status', 'loaded')
+  assignIfMissing(documentFonts, 'load', (descriptor: unknown) => fontRegistry.load(descriptor))
+  assignIfMissing(documentFonts, 'check', (descriptor: unknown) => fontRegistry.check(descriptor))
+  assignIfMissing(documentFonts, 'add', noop)
+  assignIfMissing(documentFonts, 'forEach', (callback: (face: HostObject) => void) => {
+    fontRegistry.faces.forEach(callback)
   })
-  assignIfMissing(documentObject, 'querySelectorAll', () => [])
-  assignIfMissing(documentObject, 'querySelector', (selector: string) => {
+  assignIfMissing(documentObject, 'fonts', documentFonts)
+  installEventTarget(documentObject)
+  const virtualElements = new Map<string, HostObject>()
+  const virtualElementById = (idValue: unknown): HostObject => {
+    const id = String(idValue)
+    const existing = virtualElements.get(id)
+    if (existing) return existing
+    const element = createElementStub(viewport)
+    element.id = id
+    element.ownerDocument = documentObject
+    element.parentNode = documentObject.body
+    element.parentElement = documentObject.body
+    virtualElements.set(id, element)
+    return element
+  }
+  const queryVirtualElement = (selectorValue: unknown): HostObject | null => {
+    const selector = String(selectorValue).trim()
     if (selector === 'head') return documentObject.head
     if (selector === 'body') return documentObject.body
     if (selector === 'html') return documentObject.documentElement
-    return null
+    const idMatch = /^#([A-Za-z_][\w:-]*)$/.exec(selector)
+    return idMatch ? virtualElementById(idMatch[1]) : null
+  }
+  assignIfMissing(documentObject, 'elementFromPoint', () => mainCanvas)
+  assignIfMissing(documentObject, 'getElementById', virtualElementById)
+  assignIfMissing(documentObject, 'getElementsByTagName', (tagName: string) => {
+    if (tagName.toLowerCase() === 'head') return [documentObject.head]
+    if (tagName.toLowerCase() === 'body') return [documentObject.body]
+    if (tagName.toLowerCase() === 'html') return [documentObject.documentElement]
+    if (tagName.toLowerCase() === 'script') return [documentObject.currentScript]
+    return []
   })
+  assignIfMissing(documentObject, 'querySelectorAll', (selector: string) => {
+    const element = queryVirtualElement(selector)
+    return element ? [element] : []
+  })
+  assignIfMissing(documentObject, 'querySelector', queryVirtualElement)
   assignIfMissing(documentObject, 'createTextNode', (text: string) => ({ textContent: text }))
   safeAssign(documentObject, 'createElement', (tagName: string, ...args: unknown[]) => createNativeElement(
     tagName, wx, viewport, documentObject, documentObject.body, canvases, images,
@@ -261,9 +353,7 @@ function installGlobals(context: InstallGlobalsContext): void {
   exposeIfMissing(root, gameGlobal, 'document', documentObject)
 
   const createImage = () => {
-    const image = wx.createImage()
-    if (isObject(image)) images.add(image)
-    return image
+    return createWechatImage(wx, images)
   }
   const ImageConstructor = makeHostConstructor('Image', (value) => isObject(value) && images.has(value), createImage)
   const CanvasConstructor = makeHostConstructor('HTMLCanvasElement', (value) => isObject(value) && canvases.has(value))
@@ -286,9 +376,16 @@ function installGlobals(context: InstallGlobalsContext): void {
     search: '',
     hash: ''
   }
+  assignIfMissing(locationObject, 'reload', () => {
+    if (typeof wx.restartMiniProgram === 'function') return wx.restartMiniProgram({})
+    try { console.warn('[phaser-wechat] wx.restartMiniProgram is unavailable; reload was ignored.') }
+    catch {}
+  })
   assignIfMissing(currentWindow, 'location', locationObject)
   exposeIfMissing(root, gameGlobal, 'location', locationObject)
 
+  const nativeFetch = findHostMethod([currentWindow, gameGlobal, root], 'fetch')
+  expose(root, gameGlobal, 'fetch', createWechatFetch(wx, nativeFetch))
   expose(root, gameGlobal, 'XMLHttpRequest', createWechatXMLHttpRequest(wx))
   expose(root, gameGlobal, 'localStorage', createLocalStorage(wx))
   decorateCanvas(mainCanvas, viewport, documentObject, documentObject.body, wx, true)
@@ -313,9 +410,7 @@ function createNativeElement(
     return canvas
   }
   if (tag === 'img' || tag === 'image') {
-    const image = wx.createImage()
-    if (isObject(image)) images.add(image)
-    return image
+    return createWechatImage(wx, images)
   }
   if (tag === 'audio' || tag === 'video') {
     const media = createElementStub(viewport)
@@ -328,6 +423,231 @@ function createNativeElement(
   const nativeElement = fallback?.()
   if (isObject(nativeElement)) return nativeElement as HostObject
   return createElementStub(viewport)
+}
+
+function createWechatImage(wx: HostObject, images: WeakSet<object>): HostObject {
+  const image = wx.createImage()
+  if (!isObject(image)) return image
+  images.add(image)
+  decorateWechatImage(image as HostObject, wx)
+  return image as HostObject
+}
+
+function decorateWechatImage(image: HostObject, wx: HostObject): void {
+  const sourceDescriptor = findPropertyDescriptor(image, 'src')
+  const nativeSetter = sourceDescriptor?.set
+  const nativeGetter = sourceDescriptor?.get
+  if (typeof nativeSetter !== 'function') return
+
+  let assignedSource = ''
+  let resolvedSource = ''
+  let requestId = 0
+  let diagnosticInstalled = false
+  const setNativeSource = (source: string) => {
+    resolvedSource = source
+    if (!diagnosticInstalled && typeof image.onerror === 'function') {
+      const nativeOnError = image.onerror
+      try {
+        image.onerror = (event: unknown) => {
+          try {
+            console.error(`[phaser-wechat] Image load failed: ${assignedSource} -> ${resolvedSource}`, event)
+          } catch {}
+          return Reflect.apply(nativeOnError, image, [event])
+        }
+        diagnosticInstalled = true
+      } catch {}
+    }
+    Reflect.apply(nativeSetter, image, [source])
+  }
+  try {
+    Object.defineProperty(image, 'src', {
+      configurable: true,
+      enumerable: sourceDescriptor?.enumerable ?? true,
+      get() {
+        if (typeof nativeGetter === 'function') {
+          try { return Reflect.apply(nativeGetter, image, []) }
+          catch {}
+        }
+        return assignedSource
+      },
+      set(value: unknown) {
+        assignedSource = normalizeImageSource(value)
+        const currentRequest = ++requestId
+        const packagedPath = materializePackagedImage(wx, assignedSource)
+        if (!packagedPath) {
+          setNativeSource(assignedSource)
+          return
+        }
+        packagedPath.then(
+          (source) => {
+            if (currentRequest === requestId) setNativeSource(source)
+          },
+          (error) => {
+            if (currentRequest !== requestId) return
+            try {
+              console.error(`[phaser-wechat] Failed to materialize packaged image: ${assignedSource}`, error)
+            } catch {}
+            setNativeSource(assignedSource)
+          }
+        )
+      }
+    })
+  } catch {
+    // Some host objects expose immutable accessors. Leave those untouched.
+  }
+}
+
+function findPropertyDescriptor(target: HostObject, key: PropertyKey): PropertyDescriptor | undefined {
+  let current: object | null = target
+  while (current) {
+    try {
+      const descriptor = Object.getOwnPropertyDescriptor(current, key)
+      if (descriptor) return descriptor
+      current = Object.getPrototypeOf(current)
+    } catch {
+      return undefined
+    }
+  }
+  return undefined
+}
+
+function normalizeImageSource(value: unknown): string {
+  const source = String(value ?? '')
+  if (/^(?:data:|blob:|wxfile:|file:)/i.test(source)) return source
+  return normalizeRequestUrl(source)
+}
+
+function resolveWechatAssetUrl(wx: HostObject, value: unknown): string {
+  const source = normalizeImageSource(value)
+  if (!source || /^(?:(?:https?:)?\/\/|data:|blob:|wxfile:|file:)/i.test(source)) return source
+  const userDataPath = String(wx.env?.USER_DATA_PATH ?? '').replace(/[\\/]+$/, '')
+  const fileSystem = wx.getFileSystemManager?.()
+  if (!userDataPath || !fileSystem || typeof fileSystem.readFileSync !== 'function'
+    || typeof fileSystem.writeFileSync !== 'function') {
+    try { console.error(`[phaser-wechat] Synchronous packaged asset access is unavailable: ${source}`) }
+    catch {}
+    return source
+  }
+
+  let cache = materializedAssetPathCaches.get(wx)
+  if (!cache) {
+    cache = new Map()
+    materializedAssetPathCaches.set(wx, cache)
+  }
+  const cached = cache.get(source)
+  if (cached) return cached
+
+  const extension = /\.[A-Za-z0-9]+$/.exec(source)?.[0] ?? '.asset'
+  const outputPath = `${userDataPath}/phaser-wechat-${hashString(source)}${extension}`
+  try {
+    const data = fileSystem.readFileSync(source)
+    fileSystem.writeFileSync(outputPath, data)
+    cache.set(source, outputPath)
+    return outputPath
+  } catch (error) {
+    try { console.error(`[phaser-wechat] Failed to materialize packaged asset synchronously: ${source}`, error) }
+    catch {}
+    return source
+  }
+}
+
+function materializePackagedImage(wx: HostObject, source: string): Promise<string> | undefined {
+  if (!source || /^(?:(?:https?:)?\/\/|data:|blob:|wxfile:|file:)/i.test(source)) return undefined
+  const userDataPath = String(wx.env?.USER_DATA_PATH ?? '').replace(/[\\/]+$/, '')
+  const fileSystem = wx.getFileSystemManager?.()
+  if (!userDataPath || !fileSystem || typeof fileSystem.readFile !== 'function'
+    || typeof fileSystem.writeFile !== 'function') return undefined
+
+  let cache = packagedImagePathCaches.get(wx)
+  if (!cache) {
+    cache = new Map()
+    packagedImagePathCaches.set(wx, cache)
+  }
+  const cached = cache.get(source)
+  if (cached) return cached
+
+  const extension = /\.[A-Za-z0-9]+$/.exec(source)?.[0] ?? '.img'
+  const outputPath = `${userDataPath}/phaser-wechat-${hashString(source)}${extension}`
+  const pending = new Promise<string>((resolve, reject) => {
+    fileSystem.readFile({
+      filePath: source,
+      success: (readResult: HostObject) => {
+        fileSystem.writeFile({
+          filePath: outputPath,
+          data: readResult.data,
+          success: () => resolve(outputPath),
+          fail: (error: unknown) => reject(error)
+        })
+      },
+      fail: (error: unknown) => reject(error)
+    })
+  })
+  cache.set(source, pending)
+  pending.catch(() => cache?.delete(source))
+  return pending
+}
+
+function hashString(value: string): string {
+  let hash = 0x811c9dc5
+  for (let index = 0; index < value.length; index++) {
+    hash ^= value.charCodeAt(index)
+    hash = Math.imul(hash, 0x01000193)
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0')
+}
+
+function loadWechatFonts(wx: HostObject, fonts: WechatRuntimeFont[]): WechatFontRegistry {
+  const entries = fonts.map((font) => {
+    let nativeFamily = ''
+    let error: unknown
+    try {
+      if (typeof wx.loadFont !== 'function') throw new Error('wx.loadFont is unavailable.')
+      const loaded = wx.loadFont(normalizeRequestUrl(font.path))
+      if (typeof loaded !== 'string' || loaded.length === 0) throw new Error(`wx.loadFont failed: ${font.path}`)
+      nativeFamily = loaded
+    } catch (fontError) {
+      error = fontError
+      try {
+        console.warn(`[phaser-wechat] Custom font unavailable; using system fallback: ${font.family} (${font.path})`)
+      } catch {}
+    }
+    const face: HostObject = {
+      family: nativeFamily || font.family,
+      source: font.path,
+      status: error ? 'error' : 'loaded'
+    }
+    face.load = () => error ? Promise.reject(error) : Promise.resolve(face)
+    return { ...font, nativeFamily, error, face }
+  })
+  const faces = entries.map((entry) => entry.face)
+  const resolve = (value: unknown): string => {
+    let result = String(value ?? '')
+    for (const entry of entries) {
+      if (!entry.nativeFamily) continue
+      result = result.split(entry.family).join(entry.nativeFamily)
+    }
+    return result
+  }
+  const matchingEntry = (descriptor: unknown) => {
+    const value = String(descriptor ?? '')
+    return entries.find((entry) => value.includes(entry.family) || (
+      entry.nativeFamily.length > 0 && value.includes(entry.nativeFamily)
+    ))
+  }
+  return {
+    ready: Promise.resolve(),
+    faces,
+    resolve,
+    load(descriptor) {
+      const entry = matchingEntry(descriptor)
+      if (!entry) return Promise.resolve([])
+      return entry.error ? Promise.resolve([]) : Promise.resolve([entry.face])
+    },
+    check(descriptor) {
+      const entry = matchingEntry(descriptor)
+      return entry ? !entry.error : true
+    }
+  }
 }
 
 function decorateCanvas(
@@ -577,6 +897,178 @@ function createWechatXMLHttpRequest(wx: HostObject): new () => HostObject {
   }
 }
 
+function createWechatFetch(
+  wx: HostObject,
+  nativeFetch?: (...args: any[]) => Promise<unknown>
+): (input: unknown, init?: HostObject) => Promise<HostObject> {
+  return (input: unknown, init: HostObject = {}) => {
+    const request = isObject(input) ? input as HostObject : {}
+    const rawUrl = typeof input === 'string' ? input : String(request.url ?? input)
+    const url = normalizeRequestUrl(rawUrl)
+    const method = String(init.method ?? request.method ?? 'GET').toUpperCase()
+    const headers = normalizeHeaders(init.headers ?? request.headers)
+
+    if (/^(?:data:|blob:)/i.test(url) && nativeFetch) {
+      return nativeFetch(input, init) as Promise<HostObject>
+    }
+
+    if (/^(?:https?:)?\/\//i.test(url)) {
+      return new Promise((resolve, reject) => {
+        if (typeof wx.request !== 'function') {
+          reject(new TypeError(`Network request API is unavailable: ${url}`))
+          return
+        }
+        wx.request({
+          url: url.startsWith('//') ? `https:${url}` : url,
+          method,
+          data: init.body,
+          header: headers,
+          dataType: 'text',
+          responseType: 'text',
+          success: (result: HostObject) => resolve(createFetchResponse(
+            result.data,
+            positiveNumber(result.statusCode, 200),
+            url,
+            result.header
+          )),
+          fail: (error: HostObject) => reject(new TypeError(
+            String(error?.errMsg ?? `Network request failed: ${url}`)
+          ))
+        })
+      })
+    }
+
+    return new Promise((resolve, reject) => {
+      if (method !== 'GET' && method !== 'HEAD') {
+        resolve(createFetchResponse('', 405, url))
+        return
+      }
+      const fileSystem = wx.getFileSystemManager?.()
+      if (!fileSystem || typeof fileSystem.readFile !== 'function') {
+        reject(new TypeError(`File system API is unavailable: ${url}`))
+        return
+      }
+      fileSystem.readFile({
+        filePath: url,
+        encoding: 'utf8',
+        success: (result: HostObject) => resolve(createFetchResponse(
+          method === 'HEAD' ? '' : result.data,
+          200,
+          url
+        )),
+        fail: () => resolve(createFetchResponse('', 404, url))
+      })
+    })
+  }
+}
+
+function createFetchResponse(
+  data: unknown,
+  status: number,
+  url: string,
+  headerValue?: unknown
+): HostObject {
+  const headers = createHeaders(headerValue)
+  const textValue = responseText(data)
+  let bodyUsed = false
+  const consume = <T>(read: () => T): Promise<T> => {
+    if (bodyUsed) return Promise.reject(new TypeError('Body has already been consumed.'))
+    bodyUsed = true
+    try { return Promise.resolve(read()) } catch (error) { return Promise.reject(error) }
+  }
+  const response: HostObject = {
+    ok: status >= 200 && status < 300,
+    status,
+    statusText: status >= 200 && status < 300 ? 'OK' : 'Error',
+    url,
+    redirected: false,
+    type: 'basic',
+    headers,
+    body: null,
+    get bodyUsed() { return bodyUsed },
+    text: () => consume(() => textValue),
+    json: () => consume(() => JSON.parse(textValue)),
+    arrayBuffer: () => consume(() => stringToArrayBuffer(textValue)),
+    blob: () => consume(() => ({
+      size: stringToArrayBuffer(textValue).byteLength,
+      type: headers.get('content-type') ?? '',
+      text: () => Promise.resolve(textValue),
+      arrayBuffer: () => Promise.resolve(stringToArrayBuffer(textValue))
+    })),
+    clone: () => {
+      if (bodyUsed) throw new TypeError('Body has already been consumed.')
+      return createFetchResponse(data, status, url, headerValue)
+    }
+  }
+  return response
+}
+
+function normalizeHeaders(value: unknown): Record<string, string> {
+  const result: Record<string, string> = {}
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      if (Array.isArray(entry) && entry.length >= 2) result[String(entry[0])] = String(entry[1])
+    }
+    return result
+  }
+  if (isObject(value)) {
+    if (typeof (value as HostObject).forEach === 'function') {
+      ;(value as HostObject).forEach((headerValue: unknown, name: unknown) => {
+        result[String(name)] = String(headerValue)
+      })
+    } else {
+      for (const [name, headerValue] of Object.entries(value)) result[name] = String(headerValue)
+    }
+  }
+  return result
+}
+
+function createHeaders(value: unknown): HostObject {
+  const source = normalizeHeaders(value)
+  const headers = new Map(Object.entries(source).map(([name, headerValue]) => [name.toLowerCase(), headerValue]))
+  return {
+    get(name: string) { return headers.get(String(name).toLowerCase()) ?? null },
+    has(name: string) { return headers.has(String(name).toLowerCase()) },
+    forEach(callback: (value: string, name: string) => void) {
+      headers.forEach((headerValue, name) => callback(headerValue, name))
+    },
+    entries() { return headers.entries() },
+    keys() { return headers.keys() },
+    values() { return headers.values() },
+    [Symbol.iterator]() { return headers.entries() }
+  }
+}
+
+function responseText(value: unknown): string {
+  if (typeof value === 'string') return value
+  if (value === undefined || value === null) return ''
+  if (value instanceof ArrayBuffer) return arrayBufferToString(value)
+  if (ArrayBuffer.isView(value)) {
+    return arrayBufferToString(value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength))
+  }
+  return JSON.stringify(value)
+}
+
+function stringToArrayBuffer(value: string): ArrayBuffer {
+  const encoded = encodeURIComponent(value)
+  const bytes: number[] = []
+  for (let index = 0; index < encoded.length; index++) {
+    if (encoded[index] === '%') {
+      bytes.push(Number.parseInt(encoded.slice(index + 1, index + 3), 16))
+      index += 2
+    } else {
+      bytes.push(encoded.charCodeAt(index))
+    }
+  }
+  return new Uint8Array(bytes).buffer
+}
+
+function arrayBufferToString(value: ArrayBufferLike): string {
+  let encoded = ''
+  for (const byte of new Uint8Array(value)) encoded += `%${byte.toString(16).padStart(2, '0')}`
+  try { return decodeURIComponent(encoded) } catch { return '' }
+}
+
 function createLocalStorage(wx: HostObject): HostObject {
   return {
     getItem(key: string) {
@@ -589,25 +1081,36 @@ function createLocalStorage(wx: HostObject): HostObject {
   }
 }
 
-function readViewport(wx: HostObject, mainCanvas: HostObject): WechatViewport {
+function readInitialViewport(options: WechatRuntimeOptions, mainCanvas: HostObject): WechatViewport {
+  const width = positiveNumber(mainCanvas.width, options.width)
+  const height = positiveNumber(mainCanvas.height, options.height)
+  return {
+    width,
+    height,
+    pixelRatio: 1,
+    safeArea: { left: 0, top: 0, right: width, bottom: height }
+  }
+}
+
+function readWechatViewport(wx: HostObject, fallback: WechatViewport): WechatViewport | undefined {
   let info: HostObject = {}
   let deviceInfo: HostObject = {}
   try {
     if (typeof wx.getWindowInfo === 'function') info = wx.getWindowInfo() ?? {}
-  } catch {}
+  } catch { return undefined }
   try {
     if (typeof wx.getDeviceInfo === 'function') deviceInfo = wx.getDeviceInfo() ?? {}
   } catch {}
-  const width = positiveNumber(info.windowWidth ?? info.screenWidth ?? deviceInfo.screenWidth ?? mainCanvas.width, 720)
-  const height = positiveNumber(info.windowHeight ?? info.screenHeight ?? deviceInfo.screenHeight ?? mainCanvas.height, 1280)
+  const width = positiveNumber(info.windowWidth ?? info.screenWidth ?? deviceInfo.screenWidth, fallback.width)
+  const height = positiveNumber(info.windowHeight ?? info.screenHeight ?? deviceInfo.screenHeight, fallback.height)
   const safe = isObject(info.safeArea) ? info.safeArea as HostObject : {}
   return {
     width,
     height,
-    pixelRatio: positiveNumber(info.pixelRatio ?? deviceInfo.pixelRatio, 1),
+    pixelRatio: positiveNumber(info.pixelRatio ?? deviceInfo.pixelRatio, fallback.pixelRatio),
     safeArea: {
-      left: finiteNumber(safe.left, 0),
-      top: finiteNumber(safe.top, 0),
+      left: finiteNumber(safe.left, fallback.safeArea.left),
+      top: finiteNumber(safe.top, fallback.safeArea.top),
       right: finiteNumber(safe.right, width),
       bottom: finiteNumber(safe.bottom, height)
     }
@@ -627,9 +1130,11 @@ function resolveWechatApi(root: HostObject, gameGlobal: HostObject): HostObject 
 }
 
 function createElementStub(viewport: WechatViewport): HostObject {
+  const attributes: Record<string, string> = {}
   const element: HostObject = {
     nodeType: 1,
     style: {},
+    dataset: {},
     ontouchstart: null,
     clientWidth: viewport.width,
     clientHeight: viewport.height,
@@ -638,8 +1143,11 @@ function createElementStub(viewport: WechatViewport): HostObject {
     firstChild: null,
     parentNode: null,
     parentElement: null,
-    setAttribute: noop,
-    getAttribute: () => null,
+    textContent: '',
+    value: '',
+    setAttribute(name: string, value: unknown) { attributes[String(name)] = String(value) },
+    getAttribute(name: string) { return attributes[String(name)] ?? null },
+    removeAttribute(name: string) { delete attributes[String(name)] },
     focus: noop,
     getContext: () => null,
     getBoundingClientRect: () => ({
@@ -657,6 +1165,7 @@ function patchElement(value: unknown, viewport: WechatViewport): void {
   if (!isObject(value)) return
   const element = value as HostObject
   assignIfMissing(element, 'style', {})
+  assignIfMissing(element, 'dataset', {})
   assignIfMissing(element, 'ontouchstart', null)
   assignIfMissing(element, 'clientWidth', viewport.width)
   assignIfMissing(element, 'clientHeight', viewport.height)
@@ -826,6 +1335,102 @@ class WechatURLSearchParams {
       this.append(decodeQueryPart(key), decodeQueryPart(value))
     }
   }
+}
+
+interface WechatStructuredCloneOptions {
+  transfer?: readonly unknown[]
+}
+
+function cloneStructured<T>(value: T, options?: WechatStructuredCloneOptions): T {
+  if (options?.transfer?.length) {
+    throw dataCloneError('Transferable objects are not supported by this Mini Game runtime.')
+  }
+  return cloneStructuredValue(value, new Map()) as T
+}
+
+function cloneStructuredValue(value: unknown, seen: Map<object, unknown>): unknown {
+  if (typeof value === 'function' || typeof value === 'symbol') {
+    throw dataCloneError(`${typeof value} values cannot be cloned.`)
+  }
+  if (!isObject(value)) return value
+  if (seen.has(value)) return seen.get(value)
+
+  if (value instanceof Date) {
+    const clone = new Date(value.getTime())
+    seen.set(value, clone)
+    return clone
+  }
+  if (value instanceof RegExp) {
+    const clone = new RegExp(value.source, value.flags)
+    clone.lastIndex = value.lastIndex
+    seen.set(value, clone)
+    return clone
+  }
+  if (value instanceof ArrayBuffer) {
+    const clone = value.slice(0)
+    seen.set(value, clone)
+    return clone
+  }
+  if (ArrayBuffer.isView(value)) {
+    const buffer = cloneStructuredValue(value.buffer, seen) as ArrayBuffer
+    const clone = value instanceof DataView
+      ? new DataView(buffer, value.byteOffset, value.byteLength)
+      : new (value.constructor as new (
+        buffer: ArrayBuffer,
+        byteOffset: number,
+        length: number
+      ) => ArrayBufferView)(buffer, value.byteOffset, Number((value as unknown as HostObject).length))
+    seen.set(value, clone)
+    return clone
+  }
+  if (value instanceof Map) {
+    const clone = new Map<unknown, unknown>()
+    seen.set(value, clone)
+    for (const [key, entryValue] of value) {
+      clone.set(cloneStructuredValue(key, seen), cloneStructuredValue(entryValue, seen))
+    }
+    return clone
+  }
+  if (value instanceof Set) {
+    const clone = new Set<unknown>()
+    seen.set(value, clone)
+    for (const entryValue of value) clone.add(cloneStructuredValue(entryValue, seen))
+    return clone
+  }
+  if (value instanceof WeakMap || value instanceof WeakSet || value instanceof Promise) {
+    throw dataCloneError(`${value.constructor.name} values cannot be cloned.`)
+  }
+  if (value instanceof Error) {
+    const clone = new Error(value.message)
+    seen.set(value, clone)
+    clone.name = value.name
+    if (value.stack !== undefined) clone.stack = value.stack
+    cloneEnumerableProperties(value, clone as unknown as HostObject, seen)
+    return clone
+  }
+  if (Array.isArray(value)) {
+    const clone: unknown[] = new Array(value.length)
+    seen.set(value, clone)
+    cloneEnumerableProperties(value, clone as unknown as HostObject, seen)
+    return clone
+  }
+
+  const clone: HostObject = {}
+  seen.set(value, clone)
+  cloneEnumerableProperties(value, clone, seen)
+  return clone
+}
+
+function cloneEnumerableProperties(source: object, target: HostObject, seen: Map<object, unknown>): void {
+  for (const key of Object.keys(source)) {
+    target[key] = cloneStructuredValue((source as HostObject)[key], seen)
+  }
+}
+
+function dataCloneError(message: string): Error {
+  const error = new Error(message)
+  error.name = 'DataCloneError'
+  return error
 }
 
 function decodeQueryPart(value: string): string {
