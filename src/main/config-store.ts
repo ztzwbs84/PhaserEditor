@@ -32,6 +32,7 @@ const defaultSettings: EditorSettings = {
     'run.stop': 'Shift+F6'
   },
   enabledPlugins: [],
+  disabledProjectPlugins: {},
   phaserSourceRoot: process.env.PHASER_SOURCE_ROOT ?? 'I:\\Phaser\\phaser',
   unityUIConfigurations: {}
 }
@@ -53,6 +54,7 @@ export class ConfigStore {
         ...parsed,
         runConfigurations: { ...defaultSettings.runConfigurations, ...parsed.runConfigurations },
         shortcuts: { ...defaultSettings.shortcuts, ...parsed.shortcuts },
+        disabledProjectPlugins: { ...defaultSettings.disabledProjectPlugins, ...parsed.disabledProjectPlugins },
         unityUIConfigurations: { ...defaultSettings.unityUIConfigurations, ...parsed.unityUIConfigurations }
       }
     } catch (error) {

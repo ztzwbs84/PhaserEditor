@@ -121,6 +121,29 @@ describe('editor lifecycle store', () => {
     expect(useEditorStore.getState().notices.at(-1)?.message).toContain('no longer exists')
   })
 
+  it('waits for an explicit project plugin trust decision before finishing open', async () => {
+    vi.spyOn(window.editorApi.plugins, 'attachProject').mockResolvedValue(success({
+      projectPath: 'D:\\Games\\WithPlugins',
+      plugins: [{ id: 'timeline', name: 'Timeline', permissions: ['filesystem:project'] }],
+      trustRequired: true,
+      loaded: false
+    }))
+    const trust = vi.spyOn(window.editorApi.plugins, 'trustProjectPlugins').mockResolvedValue(success({
+      projectPath: 'D:\\Games\\WithPlugins',
+      plugins: [{ id: 'timeline', name: 'Timeline', permissions: ['filesystem:project'] }],
+      trustRequired: false,
+      loaded: false
+    }))
+
+    const opening = useEditorStore.getState().openProject('D:\\Games\\WithPlugins')
+    await vi.waitFor(() => expect(useEditorStore.getState().pluginTrustRequest?.plugins[0]?.id).toBe('timeline'))
+    useEditorStore.getState().respondProjectPluginTrust('skip')
+
+    await expect(opening).resolves.toBe(true)
+    expect(trust).toHaveBeenCalledWith('D:\\Games\\WithPlugins', 'skip')
+    expect(useEditorStore.getState().pluginTrustRequest).toBeNull()
+  })
+
   it('stops a running project before closing it', async () => {
     useEditorStore.setState({ runSession: { id: 'running', status: 'running' } })
     const calls: string[] = []

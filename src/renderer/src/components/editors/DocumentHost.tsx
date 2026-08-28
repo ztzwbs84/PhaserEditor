@@ -24,7 +24,8 @@ export function DocumentHost({ path }: { path: string }): React.JSX.Element {
   const reloadDocument = useEditorStore((state) => state.reloadDocument)
   const overwriteDocument = useEditorStore((state) => state.overwriteDocument)
   const fileHandler = pluginContributionRuntime.getFileHandlerResolution(path).winner
-  const loadPluginEditor = useCallback((retry: boolean) => pluginContributionRuntime.loadFileEditor(path, retry), [path, fileHandler?.owner, fileHandler?.id])
+  const pluginRevision = fileHandler ? pluginContributionRuntime.getPlugin(fileHandler.owner)?.revision : undefined
+  const loadPluginEditor = useCallback((retry: boolean) => pluginContributionRuntime.loadFileEditor(path, retry), [path, fileHandler?.owner, fileHandler?.id, pluginRevision])
   useEffect(() => {
     selectPath(path)
     if (!document) void openDocument(path)
@@ -32,7 +33,7 @@ export function DocumentHost({ path }: { path: string }): React.JSX.Element {
 
   if (!document) return <div className="editor-loading"><LoaderCircle className="spin" size={20} />Loading {path}</div>
   const editor = fileHandler
-    ? <LazyPluginSurface name={fileHandler.value.id} pluginId={fileHandler.owner} contributionId={fileHandler.id} document={document} load={loadPluginEditor} />
+    ? <LazyPluginSurface name={fileHandler.value.id} pluginId={fileHandler.owner} contributionId={fileHandler.id} surfaceKind="fileEditor" document={document} load={loadPluginEditor} />
     : document.kind === 'markdown' ? <MarkdownEditor document={document} />
     : document.kind === 'image' ? <ImageViewer document={document} />
       : document.kind === 'audio' ? <AudioViewer document={document} />

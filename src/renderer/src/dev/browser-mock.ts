@@ -54,6 +54,7 @@ let settings: EditorSettings = {
     'workspace.quickOpen': 'Ctrl+P'
   },
   enabledPlugins: [],
+  disabledProjectPlugins: {},
   phaserSourceRoot: 'I:\\Phaser\\phaser',
   unityUIConfigurations: {}
 }
@@ -63,6 +64,7 @@ let unityUIWorkspace: UnityUIWorkspaceState | null = null
 const runListeners = new Set<(session: RunSession) => void>()
 const logListeners = new Set<(entry: LogEntry) => void>()
 const fileListeners = new Set<(event: FileChangeEvent) => void>()
+const pluginListeners = new Set<Parameters<EditorApi['plugins']['onChanged']>[0]>()
 let fileRecords = createBrowserFiles()
 
 export function installBrowserMock(): void {
@@ -244,8 +246,13 @@ export function installBrowserMock(): void {
       list: async () => success([]),
       installFromDirectory: async () => failure('CANCELLED', 'Browser acceptance mode does not install plugins.'),
       setEnabled: async () => success([]),
+      attachProject: async (path) => success({ projectPath: path, plugins: [], trustRequired: false, loaded: true }),
+      detachProject: async () => success([]),
+      refreshProject: async () => success([]),
+      trustProjectPlugins: async (path) => success({ projectPath: path, plugins: [], trustRequired: false, loaded: true }),
       readResource: async () => failure('NOT_FOUND', 'Plugin resources are unavailable in browser acceptance mode.'),
-      resourceUrl: (path) => path
+      resourceUrl: (path) => path,
+      onChanged: (listener) => { pluginListeners.add(listener); return () => pluginListeners.delete(listener) }
     },
     codeIntelligence: {
       resolvePhaserDeclarations: async () => success({

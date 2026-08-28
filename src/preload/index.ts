@@ -60,9 +60,14 @@ const api: EditorApi = {
   plugins: {
     list: () => ipcRenderer.invoke(ipcChannels.pluginsList),
     installFromDirectory: () => ipcRenderer.invoke(ipcChannels.pluginsInstall),
-    setEnabled: (id, enabled) => ipcRenderer.invoke(ipcChannels.pluginsEnable, id, enabled),
+    setEnabled: (id, enabled, scope) => ipcRenderer.invoke(ipcChannels.pluginsEnable, id, enabled, scope),
+    attachProject: (path) => ipcRenderer.invoke(ipcChannels.pluginsAttachProject, path),
+    detachProject: () => ipcRenderer.invoke(ipcChannels.pluginsDetachProject),
+    refreshProject: () => ipcRenderer.invoke(ipcChannels.pluginsRefreshProject),
+    trustProjectPlugins: (path, decision) => ipcRenderer.invoke(ipcChannels.pluginsTrustProject, path, decision),
     readResource: (id, relativePath) => ipcRenderer.invoke(ipcChannels.pluginsReadResource, id, relativePath),
-    resourceUrl: (path) => `phaser-plugin://local/?path=${encodeURIComponent(path)}`
+    resourceUrl: (path) => `phaser-plugin://local/?path=${encodeURIComponent(path)}`,
+    onChanged: (listener) => listen(ipcChannels.pluginsChangedEvent, listener)
   },
   codeIntelligence: {
     resolvePhaserDeclarations: () => ipcRenderer.invoke(ipcChannels.codeIntelligenceResolve)

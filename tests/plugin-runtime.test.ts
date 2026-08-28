@@ -7,7 +7,7 @@ import {
   panelContributionRegistry,
   schemaContributionRegistry
 } from '../src/renderer/src/lib/contribution-registry'
-import { PluginContributionRuntime, type PluginUiModule } from '../src/renderer/src/lib/plugin-runtime'
+import { matchesPluginFileHandler, PluginContributionRuntime, selectEffectivePlugins, type PluginUiModule } from '../src/renderer/src/lib/plugin-runtime'
 
 describe('plugin contribution runtime', () => {
   let runtime: PluginContributionRuntime | null = null
@@ -93,15 +93,124 @@ describe('plugin contribution runtime', () => {
     await expect(runtime.loadPanel('retryPanel')).rejects.toThrow('chunk unavailable')
     await expect(runtime.loadPanel('retryPanel')).rejects.toThrow('chunk unavailable')
     expect(imports).toBe(1)
+    expect(runtime.getDiagnostics()).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'runtime',
+        category: 'plugin',
+        pluginId: 'broken',
+        contributionId: 'ui.js',
+        message: expect.stringContaining('UI import failed')
+      })
+    ]))
     await expect(runtime.loadPanel('retryPanel', true)).resolves.toBeTypeOf('function')
     expect(imports).toBe(2)
     expect(reporter).toHaveBeenCalledWith(expect.objectContaining({ category: 'schema', pluginId: 'broken' }))
   })
+
+  it('reports an invalid surface export with its contribution context', async () => {
+    const reporter = vi.fn()
+    installPluginWindow({})
+    runtime = new PluginContributionRuntime(async () => ({}))
+    runtime.setReporter(reporter)
+    await runtime.synchronize([plugin('broken-surface', {
+      panels: [{ id: 'missingPanel', title: 'Missing panel' }]
+    })])
+
+    await expect(runtime.loadPanel('missingPanel')).rejects.toThrow('does not export')
+    expect(runtime.getDiagnostics()).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'runtime',
+        category: 'panel',
+        pluginId: 'broken-surface',
+        contributionId: 'missingPanel',
+        message: expect.stringContaining('UI resolve failed')
+      })
+    ]))
+    expect(reporter).toHaveBeenCalledWith(expect.objectContaining({
+      kind: 'runtime',
+      category: 'panel',
+      contributionId: 'missingPanel'
+    }))
+  })
+
+  it('prefers ready and stale project plugins over a same-id global plugin', () => {
+    const global = plugin('shared', {}, { instanceId: 'global:shared' })
+    const project = plugin('shared', {}, { instanceId: 'project:shared', scope: 'project', buildState: 'ready', uiUrl: 'phaser-plugin://local/project/rev/ui.mjs' })
+    expect(selectEffectivePlugins([global, project])).toEqual([project])
+
+    const stale = { ...project, build: { state: 'stale' as const, diagnostics: [{ severity: 'error' as const, message: 'rebuild failed' }] } }
+    expect(selectEffectivePlugins([global, stale])).toEqual([stale])
+
+    const failed = { ...project, uiUrl: undefined, build: { state: 'error' as const, diagnostics: [{ severity: 'error' as const, message: 'initial build failed' }] } }
+    expect(selectEffectivePlugins([global, failed])).toEqual([global])
+  })
+
+  it('matches project-relative globs while preserving extension handlers', () => {
+    const globHandler = { id: 'action', editor: 'actionEditor', fileMatch: ['skills/**/*.action.bytes'] }
+    expect(matchesPluginFileHandler(globHandler, 'C:\\game\\skills\\boss\\200201.action.bytes', 'skills/boss/200201.action.bytes')).toBe(true)
+    expect(matchesPluginFileHandler(globHandler, 'C:\\game\\assets\\200201.action.bytes', 'assets/200201.action.bytes')).toBe(false)
+    expect(matchesPluginFileHandler({ id: 'legacy', editor: 'legacyEditor', extensions: ['foo'] }, 'C:\\game\\level.foo')).toBe(true)
+  })
+
+  it('routes history commands to the newest active plugin surface and unregisters cleanly', () => {
+    runtime = new PluginContributionRuntime()
+    const calls: string[] = []
+    runtime.registerActiveUndoRedo(() => false, {
+      undo: () => calls.push('inactive undo'),
+      redo: () => calls.push('inactive redo')
+    })
+    const disposeFirst = runtime.registerActiveUndoRedo(() => true, {
+      undo: () => calls.push('first undo'),
+      redo: () => calls.push('first redo')
+    })
+    const disposeSecond = runtime.registerActiveUndoRedo(() => true, {
+      undo: () => calls.push('second undo'),
+      redo: () => calls.push('second redo'),
+      canRedo: () => false
+    })
+
+    expect(runtime.executeActiveHistory('undo')).toBe(true)
+    expect(runtime.executeActiveHistory('redo')).toBe(true)
+    expect(calls).toEqual(['second undo'])
+
+    disposeSecond()
+    expect(runtime.executeActiveHistory('redo')).toBe(true)
+    expect(calls).toEqual(['second undo', 'first redo'])
+
+    disposeFirst()
+    expect(runtime.executeActiveHistory('undo')).toBe(false)
+  })
+
+  it('rolls back a malformed plugin without blocking later plugin activation', async () => {
+    installPluginWindow({})
+    runtime = new PluginContributionRuntime(async () => ({}))
+    const broken = plugin('broken', {})
+    ;(broken.manifest.contributes.panels as unknown[]) = [null]
+    const healthy = plugin('healthy', { commands: [{ id: 'healthy.run', title: 'Healthy' }] })
+
+    await runtime.synchronize([broken, healthy])
+
+    expect(runtime.getPlugin('broken')).toBeUndefined()
+    expect(commandContributionRegistry.get('healthy.run')?.owner).toBe('healthy')
+    expect(runtime.getDiagnostics()).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'activation', category: 'plugin', pluginId: 'broken' })
+    ]))
+  })
 })
 
-function plugin(id: string, contributes: Partial<PluginManifest['contributes']>): InstalledPlugin {
+function plugin(id: string, contributes: Partial<PluginManifest['contributes']>, options: {
+  instanceId?: string
+  scope?: InstalledPlugin['scope']
+  buildState?: InstalledPlugin['build']['state']
+  uiUrl?: string
+} = {}): InstalledPlugin {
   return {
     path: `C:\\plugins\\${id}`,
+    scope: options.scope ?? 'global',
+    instanceId: options.instanceId ?? id,
+    build: { state: options.buildState ?? 'idle', diagnostics: [] },
+    uiUrl: options.uiUrl,
+    cssUrls: [],
     enabled: true,
     state: 'active',
     manifest: {
@@ -109,6 +218,7 @@ function plugin(id: string, contributes: Partial<PluginManifest['contributes']>)
       name: id,
       version: '1.0.0',
       engine: '>=0.1.0',
+      apiVersion: 1,
       ui: 'ui.js',
       permissions: [],
       contributes: {

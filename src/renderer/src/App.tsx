@@ -4,7 +4,7 @@ import { useEditorStore } from './store/editor-store'
 import { ProjectCenter } from './components/ProjectCenter'
 import { Workspace } from './components/Workspace'
 import { QuickOpen } from './components/QuickOpen'
-import { PluginManager } from './components/PluginManager'
+import { PluginManager, ProjectPluginTrustDialog } from './components/PluginManager'
 import { pluginContributionRuntime } from './lib/plugin-runtime'
 
 export function App(): React.JSX.Element {
@@ -21,15 +21,17 @@ export function App(): React.JSX.Element {
   const dismissNotice = useEditorStore((state) => state.dismissNotice)
 
   useEffect(() => {
-    pluginContributionRuntime.setReporter((diagnostic) => useEditorStore.getState().notify('error', diagnostic.message))
+    pluginContributionRuntime.setReporter((diagnostic) => useEditorStore.getState().notify(diagnostic.severity ?? 'error', diagnostic.message))
     void initialize().then(() => pluginContributionRuntime.refresh())
     const offLog = window.editorApi.runner.onLog(addLog)
     const offState = window.editorApi.runner.onState(setRunSession)
     const offFileChange = window.editorApi.fileSystem.onChange((event) => { void handleFileChange(event) })
+    const offPluginsChanged = window.editorApi.plugins.onChanged((plugins) => { void pluginContributionRuntime.synchronize(plugins) })
     return () => {
       offLog()
       offState()
       offFileChange()
+      offPluginsChanged()
     }
   }, [addLog, handleFileChange, initialize, setRunSession])
 
@@ -46,6 +48,7 @@ export function App(): React.JSX.Element {
       {project ? <Workspace /> : <ProjectCenter />}
       {quickOpen && <QuickOpen />}
       {pluginsOpen && <PluginManager />}
+      <ProjectPluginTrustDialog />
       <div className="notice-stack" aria-live="polite">
         {notices.map((notice) => (
           <div key={notice.id} className={`notice notice-${notice.level}`}>

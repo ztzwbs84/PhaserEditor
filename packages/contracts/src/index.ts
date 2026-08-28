@@ -137,7 +137,8 @@ export interface PanelContribution {
 
 export interface FileHandlerContribution {
   id: string
-  extensions: string[]
+  extensions?: string[]
+  fileMatch?: string[]
   editor: string
   priority?: number
 }
@@ -160,31 +161,126 @@ export interface SchemaContribution {
   priority?: number
 }
 
+const contributionIdSchema = z.string().trim().min(1)
+const contributionPrioritySchema = z.number().finite().optional()
+
+const commandContributionSchema = z.object({
+  id: contributionIdSchema,
+  title: z.string().trim().min(1),
+  category: z.string().trim().min(1).optional(),
+  defaultShortcut: z.string().trim().min(1).optional(),
+  priority: contributionPrioritySchema
+})
+
+const panelContributionSchema = z.object({
+  id: contributionIdSchema,
+  title: z.string().trim().min(1),
+  entry: z.string().trim().min(1).optional(),
+  location: z.enum(['left', 'center', 'right', 'bottom']).optional(),
+  priority: contributionPrioritySchema
+})
+
+const fileHandlerContributionSchema = z.object({
+  id: contributionIdSchema,
+  extensions: z.array(z.string().trim().min(1)).optional(),
+  fileMatch: z.array(z.string().trim().min(1)).optional(),
+  editor: z.string().trim().min(1),
+  priority: contributionPrioritySchema
+})
+
+const componentPropertySchema = z.object({
+  path: z.array(z.string().trim().min(1)).min(1),
+  label: z.string().trim().min(1),
+  kind: z.enum(['number', 'text', 'boolean', 'select', 'color']),
+  min: z.number().finite().optional(),
+  max: z.number().finite().optional(),
+  step: z.number().finite().positive().optional(),
+  options: z.array(z.object({
+    value: z.string(),
+    label: z.string().trim().min(1)
+  })).optional()
+})
+
+const componentProviderContributionSchema = z.object({
+  id: contributionIdSchema,
+  type: contributionIdSchema,
+  label: z.string().trim().min(1),
+  version: z.number().int().positive(),
+  entry: z.string().trim().min(1).optional(),
+  priority: contributionPrioritySchema,
+  defaultData: z.record(z.string(), z.unknown()).optional(),
+  properties: z.array(componentPropertySchema).optional()
+})
+
+const schemaContributionSchema = z.object({
+  uri: z.string().trim().min(1),
+  fileMatch: z.array(z.string().trim().min(1)).min(1),
+  path: z.string().trim().min(1),
+  priority: contributionPrioritySchema
+})
+
 export const pluginManifestSchema = z.object({
   id: z.string().regex(/^[a-z0-9][a-z0-9.-]+$/),
   name: z.string().min(1),
   version: z.string().min(1),
   engine: z.string().default('>=0.1.0'),
+  apiVersion: z.number().int().positive().default(1),
   main: z.string().optional(),
   ui: z.string().optional(),
+  uiSource: z.string().optional(),
   permissions: z.array(z.enum(['filesystem:project', 'process', 'network', 'clipboard'])).default([]),
   contributes: z.object({
-    commands: z.array(z.custom<CommandContribution>()).default([]),
-    panels: z.array(z.custom<PanelContribution>()).default([]),
-    fileHandlers: z.array(z.custom<FileHandlerContribution>()).default([]),
-    schemas: z.array(z.custom<SchemaContribution>()).default([]),
-    components: z.array(z.custom<ComponentProviderContribution>()).default([])
+    commands: z.array(commandContributionSchema).default([]),
+    panels: z.array(panelContributionSchema).default([]),
+    fileHandlers: z.array(fileHandlerContributionSchema).default([]),
+    schemas: z.array(schemaContributionSchema).default([]),
+    components: z.array(componentProviderContributionSchema).default([])
   }).default({ commands: [], panels: [], fileHandlers: [], schemas: [], components: [] })
 })
 
 export type PluginManifest = z.infer<typeof pluginManifestSchema>
 
+export type PluginScope = 'global' | 'project'
+export type PluginBuildState = 'idle' | 'building' | 'ready' | 'error' | 'stale'
+
+export interface PluginBuildDiagnostic {
+  severity: 'info' | 'warning' | 'error'
+  message: string
+  file?: string
+  line?: number
+  column?: number
+}
+
+export interface PluginBuildStatus {
+  state: PluginBuildState
+  diagnostics: PluginBuildDiagnostic[]
+}
+
 export interface InstalledPlugin {
   manifest: PluginManifest
   path: string
+  scope: PluginScope
+  instanceId: string
+  revision?: string
+  build: PluginBuildStatus
+  uiUrl?: string
+  cssUrls: string[]
   enabled: boolean
   state: 'disabled' | 'active' | 'error'
   error?: string
+}
+
+export interface ProjectPluginSummary {
+  id: string
+  name: string
+  permissions: PluginManifest['permissions']
+}
+
+export interface ProjectPluginAttachResult {
+  projectPath: string
+  plugins: ProjectPluginSummary[]
+  trustRequired: boolean
+  loaded: boolean
 }
 
 export interface PaletteColor {
@@ -281,6 +377,7 @@ export interface EditorSettings {
   palettes: PaletteGroup[]
   shortcuts: Record<string, string>
   enabledPlugins: string[]
+  disabledProjectPlugins: Record<string, string[]>
   phaserSourceRoot: string
   unityUIConfigurations: Record<string, UnityUIConfiguration>
 }
@@ -288,9 +385,14 @@ export interface EditorSettings {
 export interface PluginApi {
   list(): Promise<Result<InstalledPlugin[]>>
   installFromDirectory(): Promise<Result<InstalledPlugin>>
-  setEnabled(id: string, enabled: boolean): Promise<Result<InstalledPlugin[]>>
+  setEnabled(id: string, enabled: boolean, scope?: PluginScope): Promise<Result<InstalledPlugin[]>>
+  attachProject(path: string): Promise<Result<ProjectPluginAttachResult>>
+  detachProject(): Promise<Result<InstalledPlugin[]>>
+  refreshProject(): Promise<Result<InstalledPlugin[]>>
+  trustProjectPlugins(path: string, decision: 'trust' | 'skip'): Promise<Result<ProjectPluginAttachResult>>
   readResource(id: string, relativePath: string): Promise<Result<string>>
   resourceUrl(path: string): string
+  onChanged(listener: (plugins: InstalledPlugin[]) => void): () => void
 }
 
 export interface EditorApi {
@@ -400,6 +502,11 @@ export const ipcChannels = {
   pluginsList: 'plugins:list',
   pluginsInstall: 'plugins:install',
   pluginsEnable: 'plugins:enable',
+  pluginsAttachProject: 'plugins:attach-project',
+  pluginsDetachProject: 'plugins:detach-project',
+  pluginsRefreshProject: 'plugins:refresh-project',
+  pluginsTrustProject: 'plugins:trust-project',
+  pluginsChangedEvent: 'plugins:changed-event',
   pluginsReadResource: 'plugins:read-resource',
   clipboardWrite: 'clipboard:write',
   codeIntelligenceResolve: 'code-intelligence:resolve-phaser'

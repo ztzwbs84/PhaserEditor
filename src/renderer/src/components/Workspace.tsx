@@ -207,7 +207,7 @@ export function Workspace(): React.JSX.Element {
                 : component === 'unity-ui' ? <UnityUIPanel />
                 : component === 'document' && config.path ? <DocumentHost path={config.path} />
                   : pluginPanelId && pluginPanel
-                    ? <LazyPluginSurface name={pluginPanel.value.title} pluginId={pluginPanel.owner} contributionId={pluginPanelId} load={(retry) => pluginContributionRuntime.loadPanel(pluginPanelId, retry)} />
+                    ? <LazyPluginSurface name={pluginPanel.value.title} pluginId={pluginPanel.owner} contributionId={pluginPanelId} surfaceKind="panel" load={(retry) => pluginContributionRuntime.loadPanel(pluginPanelId, retry)} />
                     : <WelcomePanel />
     return <ErrorBoundary name={node.getName()}>{content}</ErrorBoundary>
   }, [panelRevision])

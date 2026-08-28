@@ -6,6 +6,7 @@ import { useWorkspace } from '../Workspace'
 import { useSceneStore } from '../../store/scene-store'
 import { redoActiveAuthoringDocument, undoActiveAuthoringDocument } from '../../store/authoring-history-store'
 import { commandContributionRegistry, panelContributionRegistry } from '../../lib/contribution-registry'
+import { pluginContributionRuntime } from '../../lib/plugin-runtime'
 
 interface MenuItem {
   label: string
@@ -159,11 +160,13 @@ function registerCommands(context: {
       for (const document of Object.values(useEditorStore.getState().documents)) await useEditorStore.getState().saveDocument(document.path)
     } }),
     commandRegistry.register({ id: 'workspace.undo', title: 'Undo', shortcut: 'Ctrl+Z', execute: () => {
+      if (pluginContributionRuntime.executeActiveHistory('undo')) return
       const selected = useEditorStore.getState().selectedPath
       const document = selected ? useEditorStore.getState().documents[selected] : undefined
       if (document?.kind === 'scene' && selected ? !useSceneStore.getState().undo(selected) : !undoActiveAuthoringDocument()) emitEditorAction('undo')
     } }),
     commandRegistry.register({ id: 'workspace.redo', title: 'Redo', shortcut: 'Ctrl+Shift+Z', execute: () => {
+      if (pluginContributionRuntime.executeActiveHistory('redo')) return
       const selected = useEditorStore.getState().selectedPath
       const document = selected ? useEditorStore.getState().documents[selected] : undefined
       if (document?.kind === 'scene' && selected ? !useSceneStore.getState().redo(selected) : !redoActiveAuthoringDocument()) emitEditorAction('redo')
@@ -184,7 +187,10 @@ function registerCommands(context: {
     commandRegistry.register({ id: 'view.inspector', title: 'Inspector', execute: () => context.workspace.showPanel('inspector', 'Inspector', 'right') }),
     commandRegistry.register({ id: 'view.console', title: 'Console', execute: () => context.workspace.showPanel('console', 'Console', 'bottom') }),
     commandRegistry.register({ id: 'view.palette', title: 'Palette', execute: () => context.workspace.showPanel('palette', 'Palette', 'right') }),
-    commandRegistry.register({ id: 'project.refresh', title: 'Refresh Assets', shortcut: 'Ctrl+R', execute: () => { window.dispatchEvent(new CustomEvent('phaser-editor:refresh-assets')) } }),
+    commandRegistry.register({ id: 'project.refresh', title: 'Refresh Project', shortcut: 'Ctrl+R', execute: async () => {
+      await useEditorStore.getState().refreshProjectPlugins()
+      window.dispatchEvent(new CustomEvent('phaser-editor:refresh-assets'))
+    } }),
     commandRegistry.register({ id: 'run.start', title: 'Start Project', shortcut: 'F6', enabled: () => !['starting', 'running'].includes(useEditorStore.getState().runSession.status), execute: startProject }),
     commandRegistry.register({ id: 'run.stop', title: 'Stop Project', shortcut: 'Shift+F6', enabled: () => ['starting', 'running'].includes(useEditorStore.getState().runSession.status), execute: async () => { await window.editorApi.runner.stop() } }),
     commandRegistry.register({ id: 'run.restart', title: 'Restart Project', shortcut: 'Ctrl+F6', enabled: () => Boolean(useEditorStore.getState().project), execute: async () => {

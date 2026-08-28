@@ -1,4 +1,4 @@
-import { promises as fs } from 'node:fs'
+import { promises as fs, realpathSync } from 'node:fs'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { watch, type FSWatcher } from 'chokidar'
@@ -58,12 +58,20 @@ export class FileService {
 
   contains(candidate: string): boolean {
     const root = this.getRoot()
-    return root !== null && isPathInside(root, candidate)
+    if (!root) return false
+    const resolvedRoot = path.resolve(root)
+    const resolvedCandidate = path.resolve(candidate)
+    if (!isPathInside(resolvedRoot, resolvedCandidate)) return false
+    try {
+      return isPathInside(realpathSync.native(resolvedRoot), realpathSync.native(resolvedCandidate))
+    } catch {
+      return false
+    }
   }
 
   async list(requestedPath?: string): Promise<FileEntry[]> {
     const root = this.requireRoot()
-    const directory = this.guard(requestedPath ?? root)
+    const directory = await this.guardExisting(requestedPath ?? root)
     this.watchDirectory(directory)
     const entries = await fs.readdir(directory, { withFileTypes: true })
     const result = await Promise.all(entries.map(async (entry) => {
@@ -102,7 +110,7 @@ export class FileService {
   }
 
   async read(filePath: string): Promise<FileSnapshot> {
-    const guarded = this.guard(filePath)
+    const guarded = await this.guardExisting(filePath)
     const stat = await fs.stat(guarded)
     if (!stat.isFile()) throw new AppError('INVALID_INPUT', 'The selected path is not a file.')
     if (stat.size > 10 * 1024 * 1024) throw new AppError('UNSUPPORTED', 'Text files larger than 10 MB are not supported and were not opened.')
@@ -116,7 +124,8 @@ export class FileService {
   }
 
   async write(filePath: string, content: string, expectedModifiedAt?: number): Promise<FileSnapshot> {
-    const guarded = this.guard(filePath)
+    const guarded = await this.guardExisting(filePath)
+    await this.guardParent(guarded)
     const current = await fs.stat(guarded)
     if (expectedModifiedAt !== undefined && Math.abs(current.mtimeMs - expectedModifiedAt) > 1) {
       throw new AppError('CONFLICT', 'The file changed on disk. Reload it before saving or explicitly overwrite it.')
@@ -130,7 +139,7 @@ export class FileService {
   async createFile(parent: string, name: string): Promise<FileEntry> {
     validateName(name)
     const root = this.requireRoot()
-    const target = this.guard(path.join(parent, name))
+    const target = await this.guardParent(path.join(parent, name))
     await fs.writeFile(target, '', { encoding: 'utf8', flag: 'wx' })
     return toFileEntry(root, target, await fs.stat(target))
   }
@@ -138,7 +147,7 @@ export class FileService {
   async createDirectory(parent: string, name: string): Promise<FileEntry> {
     validateName(name)
     const root = this.requireRoot()
-    const target = this.guard(path.join(parent, name))
+    const target = await this.guardParent(path.join(parent, name))
     await fs.mkdir(target, { recursive: false })
     return toFileEntry(root, target, await fs.stat(target))
   }
@@ -146,8 +155,8 @@ export class FileService {
   async rename(source: string, name: string): Promise<FileEntry> {
     validateName(name)
     const root = this.requireRoot()
-    const guarded = this.guard(source)
-    const target = this.guard(path.join(path.dirname(guarded), name))
+    const guarded = await this.guardExisting(source)
+    const target = await this.guardParent(path.join(path.dirname(guarded), name))
     await ensureMissing(target)
     await fs.rename(guarded, target)
     return toFileEntry(root, target, await fs.stat(target))
@@ -155,8 +164,9 @@ export class FileService {
 
   async copy(source: string, destinationDirectory: string): Promise<FileEntry> {
     const root = this.requireRoot()
-    const guardedSource = this.guard(source)
-    const destination = this.guard(path.join(destinationDirectory, path.basename(guardedSource)))
+    const guardedSource = await this.guardExisting(source)
+    const guardedDestination = await this.guardExisting(destinationDirectory)
+    const destination = await this.guardParent(path.join(guardedDestination, path.basename(guardedSource)))
     await ensureMissing(destination)
     await fs.cp(guardedSource, destination, { recursive: true, errorOnExist: true })
     return toFileEntry(root, destination, await fs.stat(destination))
@@ -164,8 +174,9 @@ export class FileService {
 
   async move(source: string, destinationDirectory: string): Promise<FileEntry> {
     const root = this.requireRoot()
-    const guardedSource = this.guard(source)
-    const destination = this.guard(path.join(destinationDirectory, path.basename(guardedSource)))
+    const guardedSource = await this.guardExisting(source)
+    const guardedDestination = await this.guardExisting(destinationDirectory)
+    const destination = await this.guardParent(path.join(guardedDestination, path.basename(guardedSource)))
     if (isPathInside(guardedSource, destination)) throw new AppError('INVALID_INPUT', 'A folder cannot be moved into itself.')
     await ensureMissing(destination)
     await fs.rename(guardedSource, destination)
@@ -173,7 +184,7 @@ export class FileService {
   }
 
   async trash(filePath: string): Promise<true> {
-    const guarded = this.guard(filePath)
+    const guarded = await this.guardExisting(filePath)
     if (guarded === this.requireRoot()) throw new AppError('ACCESS_DENIED', 'The project root cannot be deleted from the explorer.')
     await shell.trashItem(guarded)
     return true
@@ -181,7 +192,7 @@ export class FileService {
 
   async stat(filePath: string): Promise<FileEntry> {
     const root = this.requireRoot()
-    const guarded = this.guard(filePath)
+    const guarded = await this.guardExisting(filePath)
     return toFileEntry(root, guarded, await fs.stat(guarded))
   }
 
@@ -191,11 +202,31 @@ export class FileService {
     return root
   }
 
-  private guard(candidate: string): string {
+  private resolveInsideRoot(candidate: string): { root: string; resolved: string } {
     const root = this.requireRoot()
     const resolved = path.resolve(candidate)
     if (!isPathInside(root, resolved)) throw new AppError('ACCESS_DENIED', 'The path is outside the active project.')
+    return { root: path.resolve(root), resolved }
+  }
+
+  private async guardExisting(candidate: string): Promise<string> {
+    const { root, resolved } = this.resolveInsideRoot(candidate)
+    const [canonicalRoot, canonicalTarget] = await Promise.all([fs.realpath(root), fs.realpath(resolved)])
+    this.assertCanonicalInside(canonicalRoot, canonicalTarget)
     return resolved
+  }
+
+  private async guardParent(candidate: string): Promise<string> {
+    const { root, resolved } = this.resolveInsideRoot(candidate)
+    const [canonicalRoot, canonicalParent] = await Promise.all([fs.realpath(root), fs.realpath(path.dirname(resolved))])
+    this.assertCanonicalInside(canonicalRoot, canonicalParent)
+    return resolved
+  }
+
+  private assertCanonicalInside(canonicalRoot: string, canonicalTarget: string): void {
+    if (!isPathInside(canonicalRoot, canonicalTarget)) {
+      throw new AppError('ACCESS_DENIED', 'The path resolves outside the active project.')
+    }
   }
 
   private async disposeWatcher(): Promise<void> {

@@ -4,18 +4,30 @@ import type {
   EditorSettings,
   FileChangeEvent,
   FileEntry,
+  InstalledPlugin,
   LogEntry,
+  ProjectPluginAttachResult,
+  ProjectPluginSummary,
   ProjectCreateRequest,
   ProjectDescriptor,
   RunSession
 } from '@phaser-editor/contracts'
 import { SceneDocumentError, createSceneDocument, parseSceneDocument, serializeSceneDocument } from '@phaser-editor/contracts'
 import { basename, classifyFile, isMediaFile } from '../lib/file-types'
+import { pluginContributionRuntime } from '../lib/plugin-runtime'
 
 interface Notice {
   id: string
   level: 'info' | 'success' | 'warning' | 'error'
   message: string
+}
+
+export type ProjectPluginTrustDecision = 'trust' | 'skip' | 'cancel'
+
+export interface ProjectPluginTrustRequest {
+  projectPath: string
+  plugins: ProjectPluginSummary[]
+  resolve(decision: ProjectPluginTrustDecision): void
 }
 
 interface EditorState {
@@ -30,12 +42,14 @@ interface EditorState {
   notices: Notice[]
   quickOpen: boolean
   pluginsOpen: boolean
+  pluginTrustRequest: ProjectPluginTrustRequest | null
   initialize(): Promise<void>
   openProject(path?: string): Promise<boolean>
   createProject(request: ProjectCreateRequest): Promise<boolean>
   removeRecentProject(path: string): Promise<boolean>
   createScene(parent: string, name: string): Promise<EditorDocument | null>
   closeProject(): Promise<boolean>
+  refreshProjectPlugins(): Promise<boolean>
   openDocument(path: string): Promise<EditorDocument | null>
   updateDocument(path: string, content: string): void
   saveDocument(path?: string): Promise<boolean>
@@ -53,6 +67,8 @@ interface EditorState {
   dismissNotice(id: string): void
   setQuickOpen(open: boolean): void
   setPluginsOpen(open: boolean): void
+  requestProjectPluginTrust(result: ProjectPluginAttachResult): Promise<ProjectPluginTrustDecision>
+  respondProjectPluginTrust(decision: ProjectPluginTrustDecision): void
 }
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -67,6 +83,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   notices: [],
   quickOpen: false,
   pluginsOpen: false,
+  pluginTrustRequest: null,
 
   async initialize() {
     const [settings, recent, run] = await Promise.all([
@@ -92,6 +109,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     }
     const recent = await window.editorApi.project.listRecent()
     set({ project: result.value, recentProjects: recent.ok ? recent.value : get().recentProjects, documents: {}, selectedPath: null })
+    pluginContributionRuntime.setProjectRoot(result.value.path)
+    if (!await attachProjectPlugins(result.value.path, get, set)) return false
     get().notify('success', `Opened ${result.value.name}`)
     return true
   },
@@ -106,6 +125,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     }
     const recent = await window.editorApi.project.listRecent()
     set({ project: result.value, recentProjects: recent.ok ? recent.value : get().recentProjects, documents: {}, selectedPath: null })
+    pluginContributionRuntime.setProjectRoot(result.value.path)
+    if (!await attachProjectPlugins(result.value.path, get, set)) return false
     if (result.value.issue) get().notify('warning', result.value.issue)
     get().notify('success', `Created ${result.value.name}`)
     return true
@@ -156,7 +177,23 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       get().notify('error', result.error.message)
       return false
     }
-    set({ project: null, documents: {}, selectedPath: null })
+    const detached = await window.editorApi.plugins.detachProject()
+    if (detached.ok) await pluginContributionRuntime.synchronize(detached.value)
+    else get().notify('warning', detached.error.message)
+    pluginContributionRuntime.setProjectRoot(null)
+    set({ project: null, documents: {}, selectedPath: null, pluginTrustRequest: null })
+    return true
+  },
+
+  async refreshProjectPlugins() {
+    if (!get().project) return false
+    const result = await window.editorApi.plugins.refreshProject()
+    if (!result.ok) {
+      get().notify('error', result.error.message)
+      return false
+    }
+    await pluginContributionRuntime.synchronize(result.value)
+    get().notify('success', 'Refreshed project plugins')
     return true
   },
 
@@ -448,8 +485,64 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
   dismissNotice(id) { set((state) => ({ notices: state.notices.filter((notice) => notice.id !== id) })) },
   setQuickOpen(open) { set({ quickOpen: open }) },
-  setPluginsOpen(open) { set({ pluginsOpen: open }) }
+  setPluginsOpen(open) { set({ pluginsOpen: open }) },
+  requestProjectPluginTrust(result) {
+    return new Promise((resolve) => set({ pluginTrustRequest: { projectPath: result.projectPath, plugins: result.plugins, resolve } }))
+  },
+  respondProjectPluginTrust(decision) {
+    const request = get().pluginTrustRequest
+    if (!request) return
+    set({ pluginTrustRequest: null })
+    request.resolve(decision)
+  }
 }))
+
+async function attachProjectPlugins(
+  projectPath: string,
+  get: () => EditorState,
+  set: (partial: Partial<EditorState>) => void
+): Promise<boolean> {
+  const attached = await window.editorApi.plugins.attachProject(projectPath)
+  if (!attached.ok) {
+    get().notify('warning', `Project plugins could not be attached: ${attached.error.message}`)
+    return true
+  }
+
+  let result = attached.value
+  if (result.trustRequired) {
+    const decision = await get().requestProjectPluginTrust(result)
+    if (decision === 'cancel') {
+      const closed = await window.editorApi.project.close()
+      const detached = await window.editorApi.plugins.detachProject()
+      if (detached.ok) await pluginContributionRuntime.synchronize(detached.value)
+      else await pluginContributionRuntime.synchronize([])
+      pluginContributionRuntime.setProjectRoot(null)
+      set({ project: null, documents: {}, selectedPath: null, pluginTrustRequest: null })
+      if (!closed.ok) get().notify('error', closed.error.message)
+      return false
+    }
+    const trusted = await window.editorApi.plugins.trustProjectPlugins(projectPath, decision)
+    if (!trusted.ok) {
+      get().notify('error', trusted.error.message)
+      return true
+    }
+    result = trusted.value
+    if (decision === 'trust') {
+      const settings = await window.editorApi.settings.get()
+      if (settings.ok) set({ settings: settings.value })
+    }
+  }
+
+  const plugins = await window.editorApi.plugins.list()
+  if (plugins.ok) await synchronizePlugins(plugins.value)
+  else get().notify('warning', plugins.error.message)
+  if (result.plugins.length > 0 && !result.loaded) get().notify('info', 'Project plugins were not loaded for this session.')
+  return true
+}
+
+async function synchronizePlugins(plugins: InstalledPlugin[]): Promise<void> {
+  await pluginContributionRuntime.synchronize(plugins)
+}
 
 async function prepareProjectTransition(get: () => EditorState): Promise<boolean> {
   const state = get()

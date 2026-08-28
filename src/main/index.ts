@@ -12,13 +12,14 @@ import {
   shell
 } from 'electron'
 import { ipcChannels, projectCreateRequestSchema, type EditorSettings, type RunConfiguration } from '@phaser-editor/contracts'
-import { asResult, AppError } from './domain'
+import { asResult, AppError, normalizeForComparison } from './domain'
 import { ConfigStore } from './config-store'
 import { ProjectService } from './project-service'
 import { FileService } from './file-service'
 import { RunnerService } from './runner-service'
 import { PreviewService } from './preview-service'
-import { PluginService } from './plugin-service'
+import { PluginService, pluginProtocolHeaders } from './plugin-service'
+import { configureProjectPluginEsbuildBinary } from './project-plugin-compiler'
 import { settleShutdownTasks } from './shutdown'
 import { resolvePhaserDeclarations } from './code-intelligence-service'
 import { resolveProjectAssetUrl } from '../shared/asset-url'
@@ -50,6 +51,7 @@ let shuttingDown = false
 
 async function bootstrap(): Promise<void> {
   await app.whenReady()
+  configureProjectPluginEsbuildBinary(app.isPackaged, process.resourcesPath)
   const store = new ConfigStore(app.getPath('userData'))
   await store.load()
   const templateRoot = app.isPackaged
@@ -73,7 +75,10 @@ async function bootstrap(): Promise<void> {
   unityUIPreviewService = new UnityUIPreviewService(mainWindow)
   const unityUIPreviewRoot = path.join(app.getPath('userData'), 'unity-ui-cache')
   unityUIService = new UnityUIService(unityUIPreviewRoot, (url) => unityUIPreviewService!.load(url))
-  pluginService = new PluginService(store, path.join(app.getPath('userData'), 'plugins'), pluginHostPath)
+  pluginService = new PluginService(store, path.join(app.getPath('userData'), 'plugins'), pluginHostPath, {
+    editorVersion: app.getVersion(),
+    onChanged: (plugins) => mainWindow?.webContents.send(ipcChannels.pluginsChangedEvent, plugins)
+  })
   runnerService = new RunnerService(
     projectService,
     (session) => mainWindow?.webContents.send(ipcChannels.runnerStateEvent, session),
@@ -87,10 +92,16 @@ async function bootstrap(): Promise<void> {
     }
     return net.fetch(pathToFileURL(filePath).toString())
   })
-  protocol.handle('phaser-plugin', (request) => {
-    const filePath = new URL(request.url).searchParams.get('path')
-    if (!filePath || !pluginService?.containsResource(filePath)) return new Response('Forbidden', { status: 403 })
-    return net.fetch(pathToFileURL(filePath).toString())
+  protocol.handle('phaser-plugin', async (request) => {
+    try {
+      const resource = await pluginService?.resolveProtocolResource(request.url)
+      if (!resource) return new Response('Forbidden', { status: 403 })
+      return new Response(new Uint8Array(resource.data), { headers: pluginProtocolHeaders(resource.contentType) })
+    } catch (error) {
+      return new Response((error as NodeJS.ErrnoException).code === 'ENOENT' ? 'Not found' : 'Plugin resource could not be read', {
+        status: (error as NodeJS.ErrnoException).code === 'ENOENT' ? 404 : 500
+      })
+    }
   })
   protocol.handle(UNITY_UI_PREVIEW_SCHEME, async (request) => {
     const filePath = resolveUnityUIPreviewUrl(request.url, unityUIPreviewRoot)
@@ -177,6 +188,7 @@ function registerIpc(services: {
     return project
   }))
   ipcMain.handle(ipcChannels.projectClose, () => asResult(async () => {
+    await plugins.detachProject()
     await fileService.dispose()
     return projectService.close()
   }))
@@ -243,7 +255,17 @@ function registerIpc(services: {
     if (result.canceled || !result.filePaths[0]) throw new AppError('CANCELLED', 'Plugin installation was cancelled.')
     return plugins.install(result.filePaths[0])
   }))
-  ipcMain.handle(ipcChannels.pluginsEnable, (_event, id: string, enabled: boolean) => asResult(() => plugins.setEnabled(id, enabled)))
+  ipcMain.handle(ipcChannels.pluginsEnable, (_event, id: string, enabled: boolean, scope?: 'global' | 'project') => asResult(() => plugins.setEnabled(id, enabled, scope)))
+  ipcMain.handle(ipcChannels.pluginsAttachProject, (_event, projectPath: string) => asResult(async () => {
+    assertActiveProjectPath(projectService, projectPath)
+    return plugins.attachProject(projectPath)
+  }))
+  ipcMain.handle(ipcChannels.pluginsDetachProject, () => asResult(() => plugins.detachProject()))
+  ipcMain.handle(ipcChannels.pluginsRefreshProject, () => asResult(() => plugins.refreshProject()))
+  ipcMain.handle(ipcChannels.pluginsTrustProject, (_event, projectPath: string, decision: 'trust' | 'skip') => asResult(async () => {
+    assertActiveProjectPath(projectService, projectPath)
+    return plugins.trustProjectPlugins(projectPath, decision)
+  }))
   ipcMain.handle(ipcChannels.pluginsReadResource, (_event, id: string, relativePath: string) => asResult(() => plugins.readResource(id, relativePath)))
   ipcMain.handle(ipcChannels.codeIntelligenceResolve, () => asResult(() => resolvePhaserDeclarations(projectService.activeProject?.path ?? null, process.cwd())))
   ipcMain.handle(ipcChannels.clipboardWrite, (_event, text: string) => asResult(async () => {
@@ -300,4 +322,11 @@ function previewContentType(filePath: string): string {
     '.woff': 'font/woff',
     '.woff2': 'font/woff2'
   } as Record<string, string>)[extension] ?? 'application/octet-stream'
+}
+
+function assertActiveProjectPath(projectService: ProjectService, requestedPath: string): void {
+  const activePath = projectService.activeProject?.path
+  if (!activePath || normalizeForComparison(activePath) !== normalizeForComparison(requestedPath)) {
+    throw new AppError('ACCESS_DENIED', 'Project plugin operations are limited to the active project.')
+  }
 }
